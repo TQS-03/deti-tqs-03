@@ -1,8 +1,5 @@
 name: SonarQube
 on:
-  # push:
-  #   branches:
-  #     - main
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -33,4 +30,5 @@ jobs:
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./backend
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=TQS-03_deti-tqs-03
