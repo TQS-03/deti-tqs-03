@@ -24,11 +24,13 @@ L.Icon.Default.mergeOptions({
 
 const chargerTypes = [
   { value: "Type 1", label: "Type 1" },
-  { value: "TYPE2", label: "Type 2" },
+  { value: "Type 2", label: "Type 2" },
   { value: "CCS", label: "CCS" },
   { value: "CHAdeMO", label: "CHAdeMO" },
   { value: "TESLA", label: "Tesla" },
+  { value: "Schuko", label: "Schuko"},
 ];
+
 
 const MapPage = () => {
   const [selectedLocation, setSelectedLocation] = useState([51.505, -0.09]); // Default to London coordinates
