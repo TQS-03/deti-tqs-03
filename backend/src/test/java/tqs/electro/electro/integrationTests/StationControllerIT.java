@@ -73,11 +73,10 @@ class StationControllerIT {
         ]
         """,
                 s1.getId().toString(),
-                s2.getId().toString()
-        );
+                s2.getId().toString());
 
         // when
-        MvcResult result = mockMvc.perform(get("/station"))
+        MvcResult result = mockMvc.perform(get("/backend/station"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -91,7 +90,7 @@ class StationControllerIT {
         Station saved = stationRepository.save(createStation("X", ChargerType.CHADEMO));
 
         // when / then
-        mockMvc.perform(get("/station/{id}", saved.getId()))
+        mockMvc.perform(get("/backend/station/{id}", saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(saved.getId().toString()))
                 .andExpect(jsonPath("$.chargerTypes[0]").value("CHAdeMO"));
@@ -101,19 +100,19 @@ class StationControllerIT {
     void whenAddStation_thenPersisted() throws Exception {
         // raw JSON payload
         String payload = """
-            {
-              "name":"NewOne",
-              "address":"Addr",
-              "maxOccupation":12,
-              "currentOccupation":3,
-              "latitude":"12.3",
-              "longitude":"45.6",
-              "chargerTypes":["TYPE 1","TESLA"]
-            }
-            """;
+        {
+          "name":"NewOne",
+          "address":"Addr",
+          "maxOccupation":12,
+          "currentOccupation":3,
+          "latitude":"12.3",
+          "longitude":"45.6",
+          "chargerTypes":["TYPE 1","TESLA"]
+        }
+        """;
 
         // when
-        mockMvc.perform(post("/station")
+        mockMvc.perform(post("/backend/station")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk())
@@ -131,19 +130,19 @@ class StationControllerIT {
 
         // new JSON for update
         String updateJson = """
-            {
-              "name":"UpdatedName",
-              "address":"NewAddr",
-              "maxOccupation":99,
-              "currentOccupation":9,
-              "latitude":"99.9",
-              "longitude":"88.8",
-              "chargerTypes":["CCS"]
-            }
-            """;
+        {
+          "name":"UpdatedName",
+          "address":"NewAddr",
+          "maxOccupation":99,
+          "currentOccupation":9,
+          "latitude":"99.9",
+          "longitude":"88.8",
+          "chargerTypes":["CCS"]
+        }
+        """;
 
         // when
-        mockMvc.perform(put("/station/{id}", existing.getId())
+        mockMvc.perform(put("/backend/station/{id}", existing.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateJson))
                 .andExpect(status().isOk())
@@ -168,4 +167,34 @@ class StationControllerIT {
         s.setChargerTypes(List.of(type));
         return s;
     }
+
+    @Test
+    void whenFilterStationByType_thenReturnMatchingStations() throws Exception {
+        // given
+        Station s1 = createStation("Station1", ChargerType.TYPE2);
+        Station s2 = createStation("Station2", ChargerType.CCS);
+        Station s3 = createStation("Station3", ChargerType.TYPE2);
+        stationRepository.saveAll(List.of(s1, s2, s3));
+
+        // when
+        MvcResult result = mockMvc.perform(get("/backend/station/filter/{type}", "TYPE2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].chargerTypes[0]").value("Type 2"))
+                .andExpect(jsonPath("$[1].chargerTypes[0]").value("Type 2"))
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        System.out.println("Filtered result: " + json);
+    }
+
+    @Test
+    void whenFilterStationByType_thenReturnNotFound() throws Exception {
+        // no station saved with this charger type
+        stationRepository.save(createStation("OnlyStation", ChargerType.TESLA));
+
+        mockMvc.perform(get("/backend/station/filter/{type}", "CHADEMO"))
+                .andExpect(status().isNotFound());
+    }
+
 }

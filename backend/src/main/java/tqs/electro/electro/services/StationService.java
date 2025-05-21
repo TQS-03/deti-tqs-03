@@ -51,8 +51,8 @@ public class StationService {
         });
     }
 
-    public List<Station> getStationsByChargerType(ChargerType chargerType) {
-        return stationRepository.findByChargerTypesContaining(chargerType);
+    public Optional<List<Station>> getStationsByChargerType(ChargerType chargerType) {
+        return Optional.ofNullable(stationRepository.findByChargerTypesContaining(chargerType));
     }
 
 }

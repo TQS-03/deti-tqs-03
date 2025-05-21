@@ -121,7 +121,7 @@ class StationServiceTest {
 
         when(stationRepository.findByChargerTypesContaining(desiredChargerType)).thenReturn(expectedStations);
 
-        List<Station> stations = stationService.getStationsByChargerType(desiredChargerType);
+        List<Station> stations = stationService.getStationsByChargerType(desiredChargerType).get();
         assertEquals(1, stations.size());
         assertTrue(stations.contains(s1));
         assertFalse(stations.contains(s2));
