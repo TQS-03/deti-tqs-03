@@ -1,20 +1,24 @@
 package tqs.electro.electro.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tqs.electro.electro.entities.Station;
 import tqs.electro.electro.services.StationService;
+import tqs.electro.electro.utils.ChargerType;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/backend/station")
 public class StationController {
 
-  @Autowired
-  private StationService stationService;
+  private final StationService stationService;
+
+  public StationController(StationService stationService) {
+    this.stationService = stationService;
+  }
 
   // GET /station - Get all stations
   @GetMapping
@@ -47,4 +51,18 @@ public class StationController {
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
+
+  @GetMapping("/filter/{type}")
+  public ResponseEntity<List<Station>> filterStationByType(@PathVariable ChargerType type) {
+    Optional<List<Station>> stations = stationService.getStationsByChargerType(type);
+    if (stations.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+    List<Station> filteredStations = stations.get();
+    if (filteredStations.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.ok(filteredStations);
+  }
+
 }

@@ -1,14 +1,13 @@
-package tqs.electro.electro.controllers;
+package tqs.electro.electro.unitTests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import tqs.electro.electro.controllers.StationController;
 import tqs.electro.electro.entities.Station;
 import tqs.electro.electro.services.StationService;
@@ -21,7 +20,8 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(StationController.class)
 class StationControllerTest {
@@ -29,8 +29,8 @@ class StationControllerTest {
   @Autowired
   private MockMvc mockMvc;
 
-  @MockBean
-  private StationService stationService;
+    @MockitoBean
+    private StationService stationService;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -54,10 +54,10 @@ class StationControllerTest {
     Station s2 = createSampleStation(UUID.randomUUID());
     Mockito.when(stationService.getAllStations()).thenReturn(List.of(s1, s2));
 
-    mockMvc.perform(get("/backend/station"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2));
-  }
+        mockMvc.perform(get("/backend/station"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
 
   @Test
   void testGetStationById_found() throws Exception {
@@ -65,20 +65,20 @@ class StationControllerTest {
     Station station = createSampleStation(id);
     Mockito.when(stationService.getStationById(id)).thenReturn(Optional.of(station));
 
-    mockMvc.perform(get("/backend/station/{id}", id))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(id.toString()))
-        .andExpect(jsonPath("$.name").value("Test Station"));
-  }
+        mockMvc.perform(get("/backend/station/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.name").value("Test Station"));
+    }
 
   @Test
   void testGetStationById_notFound() throws Exception {
     UUID id = UUID.randomUUID();
     Mockito.when(stationService.getStationById(id)).thenReturn(Optional.empty());
 
-    mockMvc.perform(get("/backend/station/{id}", id))
-        .andExpect(status().isNotFound());
-  }
+        mockMvc.perform(get("/backend/station/{id}", id))
+                .andExpect(status().isNotFound());
+    }
 
   @Test
   void testAddStation() throws Exception {
@@ -87,12 +87,12 @@ class StationControllerTest {
 
     Mockito.when(stationService.addStation(any(Station.class))).thenReturn(savedStation);
 
-    mockMvc.perform(post("/backend/station")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(station)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(savedStation.getId().toString()));
-  }
+        mockMvc.perform(post("/backend/station")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(station)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(savedStation.getId().toString()));
+    }
 
   @Test
   void testUpdateStation_found() throws Exception {
@@ -102,12 +102,12 @@ class StationControllerTest {
     Mockito.when(stationService.updateStation(eq(id), any(Station.class)))
         .thenReturn(Optional.of(updated));
 
-    mockMvc.perform(put("/backend/station/{id}", id)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(updated)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(id.toString()));
-  }
+        mockMvc.perform(put("/backend/station/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updated)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()));
+    }
 
   @Test
   void testUpdateStation_notFound() throws Exception {
@@ -117,9 +117,34 @@ class StationControllerTest {
     Mockito.when(stationService.updateStation(eq(id), any(Station.class)))
         .thenReturn(Optional.empty());
 
-    mockMvc.perform(put("/backend/station/{id}", id)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(updated)))
-        .andExpect(status().isNotFound());
-  }
+        mockMvc.perform(put("/backend/station/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updated)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testFilterStationByType_found() throws Exception {
+        ChargerType type = ChargerType.TYPE2;
+        Station s1 = createSampleStation(UUID.randomUUID());
+        Station s2 = createSampleStation(UUID.randomUUID());
+
+        Mockito.when(stationService.getStationsByChargerType(type))
+                .thenReturn(Optional.of(List.of(s1, s2)));
+
+        mockMvc.perform(get("/backend/station/filter/{type}", type))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void testFilterStationByType_notFound() throws Exception {
+        ChargerType type = ChargerType.TYPE2;
+
+        Mockito.when(stationService.getStationsByChargerType(type))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/backend/station/filter/{type}", type))
+                .andExpect(status().isNotFound());
+    }
 }
