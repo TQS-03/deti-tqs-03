@@ -1,13 +1,14 @@
-package tqs.electro.electro.controllers;
+package tqs.electro.electro.unitTests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tqs.electro.electro.controllers.StationController;
 import tqs.electro.electro.entities.Station;
 import tqs.electro.electro.services.StationService;
 import tqs.electro.electro.utils.ChargerType;
@@ -27,7 +28,7 @@ class StationControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private StationService stationService;
 
     @Autowired

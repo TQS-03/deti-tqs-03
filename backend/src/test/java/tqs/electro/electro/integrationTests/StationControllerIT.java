@@ -2,11 +2,13 @@ package tqs.electro.electro.integrationTests;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import tqs.electro.electro.entities.Station;
 import tqs.electro.electro.repositories.StationRepository;
@@ -14,7 +16,6 @@ import tqs.electro.electro.utils.ChargerType;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -76,10 +77,12 @@ class StationControllerIT {
         );
 
         // when
-        mockMvc.perform(get("/station"))
+        MvcResult result = mockMvc.perform(get("/station"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(content().json(objectJson, true));
+                .andReturn();
+
+        String actualJson = result.getResponse().getContentAsString();
+        JSONAssert.assertEquals(objectJson, actualJson, true);
     }
 
     @Test

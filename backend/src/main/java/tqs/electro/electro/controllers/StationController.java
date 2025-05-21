@@ -1,6 +1,5 @@
 package tqs.electro.electro.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tqs.electro.electro.entities.Station;
@@ -13,8 +12,11 @@ import java.util.UUID;
 @RequestMapping("/station")
 public class StationController {
 
-    @Autowired
-    private StationService stationService;
+    private final StationService stationService;
+
+    public StationController(StationService stationService) {
+        this.stationService = stationService;
+    }
 
     // GET /station - Get all stations
     @GetMapping
@@ -47,6 +49,5 @@ public class StationController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
 }
-
-
