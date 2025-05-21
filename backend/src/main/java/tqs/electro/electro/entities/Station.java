@@ -1,12 +1,14 @@
 package tqs.electro.electro.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import tqs.electro.electro.utils.ChargerType;
 
 import java.util.List;
 import java.util.UUID;
 
 @Entity
+@AllArgsConstructor
 public class Station {
 
     @Id
@@ -23,17 +25,6 @@ public class Station {
     @ElementCollection(targetClass = ChargerType.class)
     @Enumerated(EnumType.STRING)
     private List<ChargerType> chargerTypes;
-
-    public Station(UUID id, String name, String address, int maxOccupation, int currentOccupation, String latitude, String longitude, List<ChargerType> chargerTypes) {
-        this.id = id;
-        this.name = name;
-        this.address = address;
-        this.maxOccupation = maxOccupation;
-        this.currentOccupation = currentOccupation;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.chargerTypes = chargerTypes;
-    }
 
     public Station() {
     }
