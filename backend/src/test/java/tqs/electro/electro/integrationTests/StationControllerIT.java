@@ -141,6 +141,19 @@ class StationControllerIT {
         }
         """;
 
+        // new JSON for update
+        String updateJson = """
+        {
+          "name":"UpdatedName",
+          "address":"NewAddr",
+          "maxOccupation":99,
+          "currentOccupation":9,
+          "latitude":"99.9",
+          "longitude":"88.8",
+          "chargerTypes":["CCS"]
+        }
+        """;
+
         // when
         mockMvc.perform(put("/backend/station/{id}", existing.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -150,11 +163,11 @@ class StationControllerIT {
                 .andExpect(jsonPath("$.maxOccupation").value(99))
                 .andExpect(jsonPath("$.chargerTypes[0]").value("CCS"));
 
-    // and the repository reflects the update
-    Station reloaded = Optional.ofNullable(stationRepository.findById(existing.getId())).orElseThrow();
-    assertThat(reloaded.getName()).isEqualTo("UpdatedName");
-    assertThat(reloaded.getChargerTypes()).containsExactly(ChargerType.CCS);
-  }
+        // and the repository reflects the update
+        Station reloaded = Optional.ofNullable(stationRepository.findById(existing.getId())).orElseThrow();
+        assertThat(reloaded.getName()).isEqualTo("UpdatedName");
+        assertThat(reloaded.getChargerTypes()).containsExactly(ChargerType.CCS);
+    }
 
     private Station createStation(String name, ChargerType type) {
         Station s = new Station();
