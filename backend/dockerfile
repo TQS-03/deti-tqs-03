@@ -1,0 +1,13 @@
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /app
+COPY . .
+RUN mvn clean install
+
+# Stage 2: Runtime
+FROM eclipse-temurin:22-jre-alpine AS run
+WORKDIR /app
+COPY --from=build /app/target/electro-0.0.1-SNAPSHOT.jar /app/app.jar
+
+# Set the command to run the application
+CMD ["java", "-jar", "/app/app.jar"]
