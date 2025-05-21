@@ -1,5 +1,4 @@
-// src/pages/MapPage.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Map from "../components/Map/Map";
 import { Dropdown } from "../components/ui/dropdown/Dropdown";
 import { Button } from "../components/ui/Button.jsx";
@@ -14,7 +13,6 @@ import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
-
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -24,23 +22,16 @@ L.Icon.Default.mergeOptions({
   shadowUrl,
 });
 
-const locations = [
-  { value: "london", label: "London", coords: [51.505, -0.09] },
-  { value: "newyork", label: "New York", coords: [40.7128, -74.006] },
-  { value: "tokyo", label: "Tokyo", coords: [35.6762, 139.6503] },
-  { value: "sydney", label: "Sydney", coords: [-33.8688, 151.2093] },
-];
-
 const chargerTypes = [
-  { value: "TYPE_1", label: "Type 1" },
-  { value: "TYPE_2", label: "Type 2" },
+  { value: "Type 1", label: "Type 1" },
+  { value: "TYPE2", label: "Type 2" },
   { value: "CCS", label: "CCS" },
   { value: "CHAdeMO", label: "CHAdeMO" },
   { value: "TESLA", label: "Tesla" },
 ];
 
 const MapPage = () => {
-  const [selectedLocation, setSelectedLocation] = useState(locations[0].coords);
+  const [selectedLocation, setSelectedLocation] = useState([51.505, -0.09]); // Default to London coordinates
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,6 +45,7 @@ const MapPage = () => {
     longitude: "",
     chargerTypes: []
   });
+  const markerRefs = useRef({});
 
   useEffect(() => {
     fetchStations();
@@ -61,12 +53,17 @@ const MapPage = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await fetch('backend/station');
+      const response = await fetch('/backend/station');
       if (!response.ok) {
         throw new Error('Failed to fetch stations');
       }
       const data = await response.json();
       setStations(data);
+      
+      // Set initial location to the first station if available
+      if (data.length > 0) {
+        setSelectedLocation([parseFloat(data[0].latitude), parseFloat(data[0].longitude)]);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -74,27 +71,26 @@ const MapPage = () => {
     }
   };
 
-  const handleLocationChange = (value) => {
-    const location = locations.find((loc) => loc.value === value);
-    if (location) {
-      setSelectedLocation(location.coords);
+  const handleLocationChange = (stationId) => {
+    // Close all open popups first
+    Object.values(markerRefs.current).forEach(ref => {
+      if (ref && ref.closePopup) {
+        ref.closePopup();
+      }
+    });
+
+    const station = stations.find((s) => s.id === stationId);
+    if (station) {
+      setSelectedLocation([parseFloat(station.latitude), parseFloat(station.longitude)]);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewStation(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleChargerTypeChange = (selectedOptions) => {
-    setNewStation(prev => ({
-      ...prev,
-      chargerTypes: selectedOptions.map(option => option.value)
-    }));
-  };
+  // Convert stations to dropdown options
+  const stationOptions = stations.map(station => ({
+    value: station.id,
+    label: `${station.name} (${station.address})`,
+    coords: [parseFloat(station.latitude), parseFloat(station.longitude)]
+  }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -128,6 +124,21 @@ const MapPage = () => {
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewStation(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleChargerTypeChange = (selectedOptions) => {
+    setNewStation(prev => ({
+      ...prev,
+      chargerTypes: selectedOptions.map(option => option.value)
+    }));
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="home-page">
@@ -143,9 +154,9 @@ const MapPage = () => {
 
       <div className="mb-6 w-full max-w-xs relative z-20">
         <Dropdown
-          options={locations.map((loc) => ({ value: loc.value, label: loc.label }))}
+          options={stationOptions}
           onSelect={handleLocationChange}
-          placeholder="Select a location"
+          placeholder="Select a station"
         />
       </div>
 
@@ -241,6 +252,9 @@ const MapPage = () => {
           <Marker
             key={station.id}
             position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
+            ref={(ref) => {
+              markerRefs.current[station.id] = ref;
+            }}
           >
             <Popup>
               <div className="station-popup">

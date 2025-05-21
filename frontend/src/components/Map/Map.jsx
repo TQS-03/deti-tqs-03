@@ -18,7 +18,8 @@ const MapUpdater = ({ center }) => {
 const Map = ({ 
   center = [51.505, -0.09], 
   zoom = 13,
-  className = ""
+  className = "",
+  children
 }) => {
   return (
     <div className={`${className}`}>
@@ -27,14 +28,14 @@ const Map = ({
         zoom={zoom}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%" }}
-        className="rounded-none" // Remove rounded corners for full-screen
+        className="rounded-none"
       >
         <TileLayer
-          attribution="Google Maps"
-          url="http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-          subdomains={['mt0','mt1','mt2','mt3']}
+          attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapUpdater center={center} />
+        {children}
       </MapContainer>
     </div>
   );
