@@ -1,9 +1,9 @@
 package tqs.electro.electro.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tqs.electro.electro.entities.Station;
 import tqs.electro.electro.repositories.StationRepository;
+import tqs.electro.electro.utils.ChargerType;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,8 +13,11 @@ import java.util.logging.Logger;
 @Service
 public class StationService {
 
-    @Autowired
-    private StationRepository stationRepository;
+    private final StationRepository stationRepository;
+
+    public StationService(StationRepository stationRepository) {
+        this.stationRepository = stationRepository;
+    }
 
     private final Logger logger = Logger.getLogger(StationService.class.getName());
 

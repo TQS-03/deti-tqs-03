@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class StationServiceTest {
+class StationServiceTest {
 
     @InjectMocks
     private StationService stationService;
@@ -115,16 +115,16 @@ public class StationServiceTest {
         Station s1 = new Station();
         s1.setChargerTypes(Arrays.asList(desiredChargerType, otherChargerType));
         Station s2 = new Station();
-        s2.setChargerTypes(Arrays.asList(otherChargerType));
+        s2.setChargerTypes(List.of(otherChargerType));
 
-        List<Station> expectedStations = List.of(s1)
+        List<Station> expectedStations = List.of(s1);
 
-        when(stationRepository.findByChargerTypesContaining(desiredChargerType).thenReturn(expectedStations);
+        when(stationRepository.findByChargerTypesContaining(desiredChargerType)).thenReturn(expectedStations);
 
-        List<Station> stations = stationService.getStationsByChargerType(chargerType);
+        List<Station> stations = stationService.getStationsByChargerType(desiredChargerType);
         assertEquals(1, stations.size());
-        assertTrue(stations.contains(s1))
-        assertFalse(stations.contains(s2))
+        assertTrue(stations.contains(s1));
+        assertFalse(stations.contains(s2));
         verify(stationRepository, times(1)).findByChargerTypesContaining(desiredChargerType);
     }
 
