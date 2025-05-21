@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/station")
+@RequestMapping("/backend/station")
 public class StationController {
 
     private final StationService stationService;

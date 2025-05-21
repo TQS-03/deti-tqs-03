@@ -77,7 +77,7 @@ class StationControllerIT {
         );
 
         // when
-        MvcResult result = mockMvc.perform(get("/station"))
+        MvcResult result = mockMvc.perform(get("/backend/station"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -91,7 +91,7 @@ class StationControllerIT {
         Station saved = stationRepository.save(createStation("X", ChargerType.CHADEMO));
 
         // when / then
-        mockMvc.perform(get("/station/{id}", saved.getId()))
+        mockMvc.perform(get("/backend/station/{id}", saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(saved.getId().toString()))
                 .andExpect(jsonPath("$.chargerTypes[0]").value("CHAdeMO"));
@@ -113,7 +113,7 @@ class StationControllerIT {
             """;
 
         // when
-        mockMvc.perform(post("/station")
+        mockMvc.perform(post("/backend/station")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk())
@@ -143,7 +143,7 @@ class StationControllerIT {
             """;
 
         // when
-        mockMvc.perform(put("/station/{id}", existing.getId())
+        mockMvc.perform(put("/backend/station/{id}", existing.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateJson))
                 .andExpect(status().isOk())

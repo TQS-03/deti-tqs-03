@@ -53,7 +53,7 @@ class StationControllerTest {
         Station s2 = createSampleStation(UUID.randomUUID());
         Mockito.when(stationService.getAllStations()).thenReturn(List.of(s1, s2));
 
-        mockMvc.perform(get("/station"))
+        mockMvc.perform(get("/backend/station"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
@@ -64,7 +64,7 @@ class StationControllerTest {
         Station station = createSampleStation(id);
         Mockito.when(stationService.getStationById(id)).thenReturn(Optional.of(station));
 
-        mockMvc.perform(get("/station/{id}", id))
+        mockMvc.perform(get("/backend/station/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.name").value("Test Station"));
@@ -75,7 +75,7 @@ class StationControllerTest {
         UUID id = UUID.randomUUID();
         Mockito.when(stationService.getStationById(id)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/station/{id}", id))
+        mockMvc.perform(get("/backend/station/{id}", id))
                 .andExpect(status().isNotFound());
     }
 
@@ -86,7 +86,7 @@ class StationControllerTest {
 
         Mockito.when(stationService.addStation(any(Station.class))).thenReturn(savedStation);
 
-        mockMvc.perform(post("/station")
+        mockMvc.perform(post("/backend/station")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(station)))
                 .andExpect(status().isOk())
@@ -101,7 +101,7 @@ class StationControllerTest {
         Mockito.when(stationService.updateStation(eq(id), any(Station.class)))
                 .thenReturn(Optional.of(updated));
 
-        mockMvc.perform(put("/station/{id}", id)
+        mockMvc.perform(put("/backend/station/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
@@ -116,7 +116,7 @@ class StationControllerTest {
         Mockito.when(stationService.updateStation(eq(id), any(Station.class)))
                 .thenReturn(Optional.empty());
 
-        mockMvc.perform(put("/station/{id}", id)
+        mockMvc.perform(put("/backend/station/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isNotFound());
