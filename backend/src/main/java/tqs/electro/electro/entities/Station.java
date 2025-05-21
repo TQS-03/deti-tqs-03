@@ -1,10 +1,9 @@
 package tqs.electro.electro.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import tqs.electro.electro.utils.ChargerType;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -20,6 +19,10 @@ public class Station {
     private int currentOccupation;
     private String latitude;
     private String longitude;
+
+    @ElementCollection(targetClass = ChargerType.class)
+    @Enumerated(EnumType.STRING)
+    private List<ChargerType> chargerTypes;
 
     public Station(UUID id, String name, String address, int maxOccupation, int currentOccupation, String latitude, String longitude) {
         this.id = id;
@@ -88,5 +91,13 @@ public class Station {
 
     public void setLongitude(String longitude) {
         this.longitude = longitude;
+    }
+
+    public List<ChargerType> getChargerTypes() {
+        return chargerTypes;
+    }
+
+    public void setChargerTypes(List<ChargerType> chargerTypes) {
+        this.chargerTypes = chargerTypes;
     }
 }
