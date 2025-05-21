@@ -1,0 +1,10 @@
+/* src/css/main.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Leaflet map fixes */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
