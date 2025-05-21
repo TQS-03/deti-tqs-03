@@ -61,7 +61,7 @@ const MapPage = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await fetch('http://localhost:8080/station');
+      const response = await fetch('backend/station');
       if (!response.ok) {
         throw new Error('Failed to fetch stations');
       }
@@ -99,7 +99,7 @@ const MapPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8080/station', {
+      const response = await fetch('backend/station', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ const MapPage = () => {
             onChange={handleInputChange}
             required
           />
-          
+
           <Input
             label="Address"
             name="address"
@@ -169,7 +169,7 @@ const MapPage = () => {
             onChange={handleInputChange}
             required
           />
-          
+
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Latitude"
@@ -180,7 +180,7 @@ const MapPage = () => {
               onChange={handleInputChange}
               required
             />
-            
+
             <Input
               label="Longitude"
               name="longitude"
@@ -191,7 +191,7 @@ const MapPage = () => {
               required
             />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Max Capacity"
@@ -202,7 +202,7 @@ const MapPage = () => {
               required
               min="1"
             />
-            
+
             <Input
               label="Current Occupancy"
               name="currentOccupation"
@@ -214,17 +214,17 @@ const MapPage = () => {
               max={newStation.maxOccupation}
             />
           </div>
-          
+
           <Select
             label="Charger Types"
             options={chargerTypes}
             isMulti
             onChange={handleChargerTypeChange}
-            value={chargerTypes.filter(option => 
+            value={chargerTypes.filter(option =>
               newStation.chargerTypes.includes(option.value)
             )}
           />
-          
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancel
@@ -238,8 +238,8 @@ const MapPage = () => {
 
       <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
         {stations.map((station) => (
-          <Marker 
-            key={station.id} 
+          <Marker
+            key={station.id}
             position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
           >
             <Popup>
