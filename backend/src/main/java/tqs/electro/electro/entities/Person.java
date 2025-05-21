@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Entity
 public class Person {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -18,7 +19,6 @@ public class Person {
     private String email;
     private String password_hash;
     private Boolean isWorker;
-
 
     public Person(UUID id, String firstName, String lastName, String email, String password_hash, Boolean isWorker) {
         this.id = id;
@@ -78,4 +78,5 @@ public class Person {
     public void setWorker(Boolean worker) {
         isWorker = worker;
     }
+
 }

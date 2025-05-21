@@ -9,9 +9,11 @@ import java.util.UUID;
 
 @Entity
 public class PaymentCard {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     private String cardNumber;
     private String expiryDate;
     private String cvv;
@@ -56,4 +58,5 @@ public class PaymentCard {
     public void setCvv(String cvv) {
         this.cvv = cvv;
     }
+
 }

@@ -24,7 +24,7 @@ public class Station {
     @Enumerated(EnumType.STRING)
     private List<ChargerType> chargerTypes;
 
-    public Station(UUID id, String name, String address, int maxOccupation, int currentOccupation, String latitude, String longitude) {
+    public Station(UUID id, String name, String address, int maxOccupation, int currentOccupation, String latitude, String longitude, List<ChargerType> chargerTypes) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -32,6 +32,7 @@ public class Station {
         this.currentOccupation = currentOccupation;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.chargerTypes = chargerTypes;
     }
 
     public Station() {
@@ -100,4 +101,5 @@ public class Station {
     public void setChargerTypes(List<ChargerType> chargerTypes) {
         this.chargerTypes = chargerTypes;
     }
+
 }
