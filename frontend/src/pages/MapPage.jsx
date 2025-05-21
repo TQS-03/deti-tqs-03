@@ -55,7 +55,7 @@ const MapPage = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await fetch('/backend/station');
+      const response = await fetch('backend/station');
       if (!response.ok) {
         throw new Error('Failed to fetch stations');
       }
