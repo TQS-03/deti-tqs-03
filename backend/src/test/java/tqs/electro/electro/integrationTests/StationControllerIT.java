@@ -26,29 +26,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class StationControllerIT {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Autowired
-    private StationRepository stationRepository;
+  @Autowired
+  private StationRepository stationRepository;
 
-    @BeforeEach
-    void cleanup() {
-        stationRepository.deleteAll();
-    }
+  @BeforeEach
+  void cleanup() {
+    stationRepository.deleteAll();
+  }
 
-    @Test
-    void whenGetAllStations_thenReturnList() throws Exception {
-        // given two stations in the DB
-        Station s1 = createStation("A", ChargerType.TYPE2);
-        Station s2 = createStation("B", ChargerType.CCS);
-        stationRepository.saveAll(List.of(s1, s2));
+  @Test
+  void whenGetAllStations_thenReturnList() throws Exception {
+    // given two stations in the DB
+    Station s1 = createStation("A", ChargerType.TYPE2);
+    Station s2 = createStation("B", ChargerType.CCS);
+    stationRepository.saveAll(List.of(s1, s2));
 
-        List<Station> stations = stationRepository.findAll();
-        s1 = stations.get(0);
-        s2 = stations.get(1);
+    List<Station> stations = stationRepository.findAll();
+    s1 = stations.get(0);
+    s2 = stations.get(1);
 
-        String objectJson = String.format("""
+    String objectJson = String.format("""
         [
           {
             "id":"%s",
@@ -84,10 +84,10 @@ class StationControllerIT {
         JSONAssert.assertEquals(objectJson, actualJson, true);
     }
 
-    @Test
-    void whenGetStationById_thenReturnOne() throws Exception {
-        // given
-        Station saved = stationRepository.save(createStation("X", ChargerType.CHADEMO));
+  @Test
+  void whenGetStationById_thenReturnOne() throws Exception {
+    // given
+    Station saved = stationRepository.save(createStation("X", ChargerType.CHADEMO));
 
         // when / then
         mockMvc.perform(get("/backend/station/{id}", saved.getId()))
@@ -119,14 +119,14 @@ class StationControllerIT {
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.name").value("NewOne"));
 
-        // then repo has one entry
-        assertThat(stationRepository.count()).isEqualTo(1);
-    }
+    // then repo has one entry
+    assertThat(stationRepository.count()).isEqualTo(1);
+  }
 
-    @Test
-    void whenUpdateStation_thenFieldsChange() throws Exception {
-        // given existing station
-        Station existing = stationRepository.save(createStation("OldName", ChargerType.SCHUKO));
+  @Test
+  void whenUpdateStation_thenFieldsChange() throws Exception {
+    // given existing station
+    Station existing = stationRepository.save(createStation("OldName", ChargerType.SCHUKO));
 
         // new JSON for update
         String updateJson = """
@@ -150,11 +150,11 @@ class StationControllerIT {
                 .andExpect(jsonPath("$.maxOccupation").value(99))
                 .andExpect(jsonPath("$.chargerTypes[0]").value("CCS"));
 
-        // and the repository reflects the update
-        Station reloaded = Optional.ofNullable(stationRepository.findById(existing.getId())).orElseThrow();
-        assertThat(reloaded.getName()).isEqualTo("UpdatedName");
-        assertThat(reloaded.getChargerTypes()).containsExactly(ChargerType.CCS);
-    }
+    // and the repository reflects the update
+    Station reloaded = Optional.ofNullable(stationRepository.findById(existing.getId())).orElseThrow();
+    assertThat(reloaded.getName()).isEqualTo("UpdatedName");
+    assertThat(reloaded.getChargerTypes()).containsExactly(ChargerType.CCS);
+  }
 
     private Station createStation(String name, ChargerType type) {
         Station s = new Station();
