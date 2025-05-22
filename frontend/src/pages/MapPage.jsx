@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Map from "../components/Map/Map";
 import { Dropdown } from "../components/ui/dropdown/Dropdown";
 import { Button } from "../components/ui/Button.jsx";
@@ -31,13 +31,13 @@ const chargerTypes = [
   { value: "Schuko", label: "Schuko"},
 ];
 
-
 const MapPage = () => {
-  const [selectedLocation, setSelectedLocation] = useState([51.505, -0.09]); // Default to London coordinates
+  const [selectedLocation, setSelectedLocation] = useState([51.505, -0.09]);
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedChargerType, setSelectedChargerType] = useState(null);
   const [newStation, setNewStation] = useState({
     name: "",
     address: "",
@@ -62,7 +62,6 @@ const MapPage = () => {
       const data = await response.json();
       setStations(data);
       
-      // Set initial location to the first station if available
       if (data.length > 0) {
         setSelectedLocation([parseFloat(data[0].latitude), parseFloat(data[0].longitude)]);
       }
@@ -73,26 +72,34 @@ const MapPage = () => {
     }
   };
 
+  const filteredStations = useMemo(() => {
+    if (!selectedChargerType) return stations;
+    return stations.filter(station => 
+      station.chargerTypes?.includes(selectedChargerType.value)
+    );
+  }, [stations, selectedChargerType]);
+
   const handleLocationChange = (stationId) => {
-    // Close all open popups first
     Object.values(markerRefs.current).forEach(ref => {
       if (ref && ref.closePopup) {
         ref.closePopup();
       }
     });
 
-    const station = stations.find((s) => s.id === stationId);
+    const station = filteredStations.find((s) => s.id === stationId);
     if (station) {
       setSelectedLocation([parseFloat(station.latitude), parseFloat(station.longitude)]);
     }
   };
 
-  // Convert stations to dropdown options
-  const stationOptions = stations.map(station => ({
-    value: station.id,
-    label: `${station.name} (${station.address})`,
-    coords: [parseFloat(station.latitude), parseFloat(station.longitude)]
-  }));
+  const stationOptions = useMemo(() => 
+    filteredStations.map(station => ({
+      value: station.id,
+      label: `${station.name} (${station.address})`,
+      coords: [parseFloat(station.latitude), parseFloat(station.longitude)]
+    })),
+    [filteredStations]
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -154,12 +161,23 @@ const MapPage = () => {
         </Button>
       </div>
 
-      <div className="mb-6 w-full max-w-xs relative z-20">
-        <Dropdown
-          options={stationOptions}
-          onSelect={handleLocationChange}
-          placeholder="Select a station"
-        />
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="w-full md:w-1/3 relative z-20">
+          <Dropdown
+            options={stationOptions}
+            onSelect={handleLocationChange}
+            placeholder="Select a station"
+          />
+        </div>
+        <div className="w-full md:w-1/3 relative z-20">
+          <Select
+            options={chargerTypes}
+            placeholder="Filter by charger type"
+            isClearable
+            onChange={(selected) => setSelectedChargerType(selected)}
+            value={selectedChargerType}
+          />
+        </div>
       </div>
 
       {loading && <p className="text-center">Loading charging stations...</p>}
@@ -250,7 +268,7 @@ const MapPage = () => {
       </Modal>
 
       <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
-        {stations.map((station) => (
+        {filteredStations.map((station) => (
           <Marker
             key={station.id}
             position={[parseFloat(station.latitude), parseFloat(station.longitude)]}

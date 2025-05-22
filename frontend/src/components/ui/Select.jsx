@@ -1,18 +1,25 @@
 import React from "react";
 
-export const Select = ({ label, options, isMulti = false, onChange, value = [], ...props }) => {
-  // For multi-select, value is an array of selected values
-  // For single select, value is a single value or empty string
+export const Select = ({ label, options, isMulti = false, onChange, value = null, ...props }) => {
+  const { isClearable, ...selectProps } = props;
 
   const handleChange = (e) => {
     if (isMulti) {
-      const selectedOptions = Array.from(e.target.selectedOptions).map(opt => {
-        return options.find(o => o.value === opt.value);
-      });
+      const selectedOptions = Array.from(e.target.selectedOptions).map(opt =>
+        options.find(o => o.value === opt.value)
+      );
       onChange(selectedOptions);
     } else {
       const selectedOption = options.find(o => o.value === e.target.value);
-      onChange(selectedOption ? [selectedOption] : []);
+      onChange(selectedOption || null); // ✅ Return a single object or null
+    }
+  };
+
+  const getValue = () => {
+    if (isMulti) {
+      return Array.isArray(value) ? value.map(v => v.value) : [];
+    } else {
+      return value?.value || "";
     }
   };
 
@@ -25,10 +32,10 @@ export const Select = ({ label, options, isMulti = false, onChange, value = [], 
       )}
       <select
         multiple={isMulti}
-        value={isMulti ? value.map(v => v.value) : (value[0]?.value || "")}
+        value={getValue()}
         onChange={handleChange}
         className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        {...props}
+        {...selectProps}
       >
         {!isMulti && <option value="">Select...</option>}
         {options.map((option) => (
