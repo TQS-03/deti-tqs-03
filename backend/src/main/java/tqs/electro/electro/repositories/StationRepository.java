@@ -9,9 +9,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface StationRepository extends JpaRepository<Station, Long> {
+public interface StationRepository extends JpaRepository<Station, UUID> {
 
-    Station findById(UUID id);
     List<Station> findByChargerTypesContaining(ChargerType chargerType);
 
 }

@@ -71,11 +71,11 @@ public class Person {
         this.password_hash = password_hash;
     }
 
-    public Boolean getWorker() {
+    public Boolean isWorker() {
         return isWorker;
     }
 
-    public void setWorker(Boolean worker) {
+    public void setIsWorker(Boolean worker) {
         isWorker = worker;
     }
 
