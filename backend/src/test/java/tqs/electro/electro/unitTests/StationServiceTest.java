@@ -43,7 +43,7 @@ class StationServiceTest {
         UUID id = UUID.randomUUID();
         Station station = new Station();
         station.setId(id);
-        when(stationRepository.findById(id)).thenReturn(station);
+        when(stationRepository.findById(id)).thenReturn(Optional.of(station));
 
         Optional<Station> result = stationService.getStationById(id);
         assertTrue(result.isPresent());
@@ -53,7 +53,7 @@ class StationServiceTest {
     @Test
     void testGetStationById_notFound() {
         UUID id = UUID.randomUUID();
-        when(stationRepository.findById(id)).thenReturn(null);
+        when(stationRepository.findById(id)).thenReturn(Optional.empty());
 
         Optional<Station> result = stationService.getStationById(id);
         assertFalse(result.isPresent());
@@ -84,7 +84,7 @@ class StationServiceTest {
         update.setLongitude("-8.6");
         update.setChargerTypes(List.of(ChargerType.TYPE2, ChargerType.CCS));
 
-        when(stationRepository.findById(id)).thenReturn(existing);
+        when(stationRepository.findById(id)).thenReturn(Optional.of(existing));
         when(stationRepository.save(any())).thenReturn(existing);
 
         Optional<Station> updated = stationService.updateStation(id, update);
@@ -100,7 +100,7 @@ class StationServiceTest {
     void testUpdateStation_notFound() {
         UUID id = UUID.randomUUID();
         Station update = new Station();
-        when(stationRepository.findById(id)).thenReturn(null);
+        when(stationRepository.findById(id)).thenReturn(Optional.empty());
 
         Optional<Station> updated = stationService.updateStation(id, update);
         assertFalse(updated.isPresent());
@@ -121,7 +121,7 @@ class StationServiceTest {
 
         when(stationRepository.findByChargerTypesContaining(desiredChargerType)).thenReturn(expectedStations);
 
-        List<Station> stations = stationService.getStationsByChargerType(desiredChargerType).get();
+        List<Station> stations = stationService.getStationsByChargerType(desiredChargerType);
         assertEquals(1, stations.size());
         assertTrue(stations.contains(s1));
         assertFalse(stations.contains(s2));

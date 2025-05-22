@@ -2,6 +2,7 @@ package tqs.electro.electro.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import tqs.electro.electro.utils.ChargerType;
 
 import java.util.List;
