@@ -14,19 +14,19 @@ import java.util.logging.Logger;
 public class StationService {
 
     private final StationRepository stationRepository;
+    private final Logger logger;
 
     public StationService(StationRepository stationRepository) {
         this.stationRepository = stationRepository;
+        this.logger = Logger.getLogger(StationService.class.getName());
     }
-
-    private final Logger logger = Logger.getLogger(StationService.class.getName());
 
     public List<Station> getAllStations() {
         return stationRepository.findAll();
     }
 
     public Optional<Station> getStationById(UUID id) {
-        return Optional.ofNullable(stationRepository.findById(id));
+        return stationRepository.findById(id);
     }
 
     public Station addStation(Station station) {
@@ -39,7 +39,7 @@ public class StationService {
     }
 
     public Optional<Station> updateStation(UUID id, Station updatedStation) {
-        return Optional.ofNullable(stationRepository.findById(id)).map(existing -> {
+        return stationRepository.findById(id).map(existing -> {
             existing.setName(updatedStation.getName());
             existing.setAddress(updatedStation.getAddress());
             existing.setMaxOccupation(updatedStation.getMaxOccupation());
@@ -51,8 +51,8 @@ public class StationService {
         });
     }
 
-    public Optional<List<Station>> getStationsByChargerType(ChargerType chargerType) {
-        return Optional.ofNullable(stationRepository.findByChargerTypesContaining(chargerType));
+    public List<Station> getStationsByChargerType(ChargerType chargerType) {
+        return stationRepository.findByChargerTypesContaining(chargerType);
     }
 
 }
