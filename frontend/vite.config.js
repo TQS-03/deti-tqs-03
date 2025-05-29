@@ -6,6 +6,7 @@ export default defineConfig({
   server: {
     port: 3000,  // Changed to match standard frontend port
     host: true,  // Allow access from outside the container
+    allowedHosts: ["deti-tqs-03.ua.pt"],
     proxy: {
       '/backend': {
         target: 'http://backend:8080',

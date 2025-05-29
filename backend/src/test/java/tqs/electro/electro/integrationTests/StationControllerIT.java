@@ -74,14 +74,14 @@ class StationControllerIT {
         s1.getId().toString(),
         s2.getId().toString());
 
-        // when
-        MvcResult result = mockMvc.perform(get("/backend/station"))
-                .andExpect(status().isOk())
-                .andReturn();
+    // when
+    MvcResult result = mockMvc.perform(get("/backend/station"))
+        .andExpect(status().isOk())
+        .andReturn();
 
-        String actualJson = result.getResponse().getContentAsString();
-        JSONAssert.assertEquals(objectJson, actualJson, true);
-    }
+    String actualJson = result.getResponse().getContentAsString();
+    JSONAssert.assertEquals(objectJson, actualJson, true);
+  }
 
     @Test
     void whenGetStationById_thenReturnOne() throws Exception {
@@ -155,45 +155,45 @@ class StationControllerIT {
         assertThat(reloaded.getChargerTypes()).containsExactly(ChargerType.CCS);
     }
 
-    private Station createStation(String name, ChargerType type) {
-        Station s = new Station();
-        s.setName(name);
-        s.setAddress("addr");
-        s.setMaxOccupation(5);
-        s.setCurrentOccupation(1);
-        s.setLatitude("0.0");
-        s.setLongitude("0.0");
-        s.setChargerTypes(List.of(type));
-        return s;
-    }
+  private Station createStation(String name, ChargerType type) {
+    Station s = new Station();
+    s.setName(name);
+    s.setAddress("addr");
+    s.setMaxOccupation(5);
+    s.setCurrentOccupation(1);
+    s.setLatitude("0.0");
+    s.setLongitude("0.0");
+    s.setChargerTypes(List.of(type));
+    return s;
+  }
 
-    @Test
-    void whenFilterStationByType_thenReturnMatchingStations() throws Exception {
-        // given
-        Station s1 = createStation("Station1", ChargerType.TYPE2);
-        Station s2 = createStation("Station2", ChargerType.CCS);
-        Station s3 = createStation("Station3", ChargerType.TYPE2);
-        stationRepository.saveAll(List.of(s1, s2, s3));
+  @Test
+  void whenFilterStationByType_thenReturnMatchingStations() throws Exception {
+    // given
+    Station s1 = createStation("Station1", ChargerType.TYPE2);
+    Station s2 = createStation("Station2", ChargerType.CCS);
+    Station s3 = createStation("Station3", ChargerType.TYPE2);
+    stationRepository.saveAll(List.of(s1, s2, s3));
 
-        // when
-        MvcResult result = mockMvc.perform(get("/backend/station/filter/{type}", "TYPE2"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].chargerTypes[0]").value("Type 2"))
-                .andExpect(jsonPath("$[1].chargerTypes[0]").value("Type 2"))
-                .andReturn();
+    // when
+    MvcResult result = mockMvc.perform(get("/backend/station/filter/{type}", "TYPE2"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].chargerTypes[0]").value("Type 2"))
+        .andExpect(jsonPath("$[1].chargerTypes[0]").value("Type 2"))
+        .andReturn();
 
-        String json = result.getResponse().getContentAsString();
-        System.out.println("Filtered result: " + json);
-    }
+    String json = result.getResponse().getContentAsString();
+    System.out.println("Filtered result: " + json);
+  }
 
-    @Test
-    void whenFilterStationByType_thenReturnNotFound() throws Exception {
-        // no station saved with this charger type
-        stationRepository.save(createStation("OnlyStation", ChargerType.TESLA));
+  @Test
+  void whenFilterStationByType_thenReturnNotFound() throws Exception {
+    // no station saved with this charger type
+    stationRepository.save(createStation("OnlyStation", ChargerType.TESLA));
 
-        mockMvc.perform(get("/backend/station/filter/{type}", "CHADEMO"))
-                .andExpect(status().isNotFound());
-    }
+    mockMvc.perform(get("/backend/station/filter/{type}", "CHADEMO"))
+        .andExpect(status().isNotFound());
+  }
 
 }
