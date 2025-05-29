@@ -12,37 +12,50 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # - ./Backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
   backend:
     build: ./backend/
     container_name: backend
     environment:
       SPRING_APPLICATION_JSON: '{
-          "spring.application.name":              "backend",
-          "spring.datasource.url":                "jdbc:postgresql://db:5432/Electro",
-          "spring.datasource.username":           "${DB_USER}",
-          "spring.datasource.password":           "${DB_PASS}",
-          "spring.jpa.hibernate.ddl-auto":        "update",
-          "spring.jpa.properties.hibernate.dialect":"org.hibernate.dialect.PostgreSQLDialect",
-          "management.endpoints.web.exposure.include":"health",
-          "management.endpoints.web.base-path":    "/actuator",
-          "management.endpoint.health.show-details":"never"
+          "spring.application.name": "backend",
+          "spring.datasource.url": "jdbc:postgresql://db:5432/Electro",
+          "spring.datasource.username": "${DB_USER}",
+          "spring.datasource.password": "${DB_PASS}",
+          "spring.jpa.hibernate.ddl-auto": "update",
+          "spring.jpa.properties.hibernate.dialect": "org.hibernate.dialect.PostgreSQLDialect",
+          "management.endpoints.web.exposure.include": "health",
+          "management.endpoints.web.base-path": "/actuator",
+          "management.endpoint.health.show-details": "never"
         }'
     ports:
       - "8080:8080"
     depends_on:
       - db
 
+  frontend:
+    build: ./frontend/
+    container_name: frontend
+    ports:
+      - "3000:3000"  
+    environment:
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=/backend
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules
+    depends_on:
+      - backend
+
   proxy:
     depends_on:
       - backend
+      - frontend
     image: nginx:1.27-alpine
     volumes:
       - "./nginx.conf:/etc/nginx/nginx.conf:ro"
     ports:
       - "${PROXY_PORT}:80"
-
 
 volumes:
   postgres_data:
