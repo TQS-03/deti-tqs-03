@@ -9,11 +9,10 @@ import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
+import iconUrl from "leaflet/dist/images/marker-icon.png";
+import shadowUrl from "leaflet/dist/images/marker-shadow.png";
 
-// Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -28,7 +27,7 @@ const chargerTypes = [
   { value: "CCS", label: "CCS" },
   { value: "CHAdeMO", label: "CHAdeMO" },
   { value: "TESLA", label: "Tesla" },
-  { value: "Schuko", label: "Schuko"},
+  { value: "Schuko", label: "Schuko" },
 ];
 
 const MapPage = () => {
@@ -45,9 +44,17 @@ const MapPage = () => {
     currentOccupation: 0,
     latitude: "",
     longitude: "",
-    chargerTypes: []
+    chargerTypes: [],
   });
   const markerRefs = useRef({});
+
+  // Booking modal states
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [stationToBook, setStationToBook] = useState(null);
+
+  // New booking date/time states
+  const [bookingStart, setBookingStart] = useState("");
+  const [bookingEnd, setBookingEnd] = useState("");
 
   useEffect(() => {
     fetchStations();
@@ -55,13 +62,13 @@ const MapPage = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await fetch('backend/station');
+      const response = await fetch("backend/station");
       if (!response.ok) {
-        throw new Error('Failed to fetch stations');
+        throw new Error("Failed to fetch stations");
       }
       const data = await response.json();
       setStations(data);
-      
+
       if (data.length > 0) {
         setSelectedLocation([parseFloat(data[0].latitude), parseFloat(data[0].longitude)]);
       }
@@ -74,13 +81,11 @@ const MapPage = () => {
 
   const filteredStations = useMemo(() => {
     if (!selectedChargerType) return stations;
-    return stations.filter(station => 
-      station.chargerTypes?.includes(selectedChargerType.value)
-    );
+    return stations.filter((station) => station.chargerTypes?.includes(selectedChargerType.value));
   }, [stations, selectedChargerType]);
 
   const handleLocationChange = (stationId) => {
-    Object.values(markerRefs.current).forEach(ref => {
+    Object.values(markerRefs.current).forEach((ref) => {
       if (ref && ref.closePopup) {
         ref.closePopup();
       }
@@ -92,32 +97,34 @@ const MapPage = () => {
     }
   };
 
-  const stationOptions = useMemo(() => 
-    filteredStations.map(station => ({
-      value: station.id,
-      label: `${station.name} (${station.address})`,
-      coords: [parseFloat(station.latitude), parseFloat(station.longitude)]
-    })),
+  const stationOptions = useMemo(
+    () =>
+      filteredStations.map((station) => ({
+        value: station.id,
+        label: `${station.name} (${station.address})`,
+        coords: [parseFloat(station.latitude), parseFloat(station.longitude)],
+      })),
     [filteredStations]
   );
 
+  // Add Station form handlers
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('backend/station', {
-        method: 'POST',
+      const response = await fetch("backend/station", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(newStation),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add station');
+        throw new Error("Failed to add station");
       }
 
       const addedStation = await response.json();
-      setStations(prev => [...prev, addedStation]);
+      setStations((prev) => [...prev, addedStation]);
       setIsModalOpen(false);
       setNewStation({
         name: "",
@@ -126,7 +133,7 @@ const MapPage = () => {
         currentOccupation: 0,
         latitude: "",
         longitude: "",
-        chargerTypes: []
+        chargerTypes: [],
       });
     } catch (err) {
       setError(err.message);
@@ -135,17 +142,39 @@ const MapPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewStation(prev => ({
+    setNewStation((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleChargerTypeChange = (selectedOptions) => {
-    setNewStation(prev => ({
+    setNewStation((prev) => ({
       ...prev,
-      chargerTypes: selectedOptions.map(option => option.value)
+      chargerTypes: selectedOptions.map((option) => option.value),
     }));
+  };
+
+  // Booking handlers
+  const handleBookStation = (station) => {
+    setStationToBook(station);
+    setBookingStart("");
+    setBookingEnd("");
+    setIsBookingModalOpen(true);
+  };
+
+  const handleBookingSubmit = (e) => {
+    e.preventDefault();
+    if (!bookingStart || !bookingEnd) {
+      alert("Please select both start and end date/time");
+      return;
+    }
+    if (new Date(bookingEnd) <= new Date(bookingStart)) {
+      alert("End date/time must be after start date/time");
+      return;
+    }
+    alert(`Station "${stationToBook.name}" booked from ${bookingStart} to ${bookingEnd}`);
+    setIsBookingModalOpen(false);
   };
 
   return (
@@ -156,18 +185,12 @@ const MapPage = () => {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Interactive Map</h1>
-        <Button onClick={() => setIsModalOpen(true)}>
-          Add New Station
-        </Button>
+        <Button onClick={() => setIsModalOpen(true)}>Add New Station</Button>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="w-full md:w-1/3 relative z-20">
-          <Dropdown
-            options={stationOptions}
-            onSelect={handleLocationChange}
-            placeholder="Select a station"
-          />
+          <Dropdown options={stationOptions} onSelect={handleLocationChange} placeholder="Select a station" />
         </div>
         <div className="w-full md:w-1/3 relative z-20">
           <Select
@@ -183,23 +206,12 @@ const MapPage = () => {
       {loading && <p className="text-center">Loading charging stations...</p>}
       {error && <p className="text-center text-red-500">Error: {error}</p>}
 
+      {/* Add New Station Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Charging Station">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Station Name"
-            name="name"
-            value={newStation.name}
-            onChange={handleInputChange}
-            required
-          />
+          <Input label="Station Name" name="name" value={newStation.name} onChange={handleInputChange} required />
 
-          <Input
-            label="Address"
-            name="address"
-            value={newStation.address}
-            onChange={handleInputChange}
-            required
-          />
+          <Input label="Address" name="address" value={newStation.address} onChange={handleInputChange} required />
 
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -251,22 +263,61 @@ const MapPage = () => {
             options={chargerTypes}
             isMulti
             onChange={handleChargerTypeChange}
-            value={chargerTypes.filter(option =>
-              newStation.chargerTypes.includes(option.value)
-            )}
+            value={chargerTypes.filter((option) => newStation.chargerTypes.includes(option.value))}
           />
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">
-              Add Station
-            </Button>
+            <Button type="submit">Add Station</Button>
           </div>
         </form>
       </Modal>
 
+      {/* Booking Modal */}
+      <Modal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        title={`Book Station: ${stationToBook?.name || ""}`}
+      >
+        <form onSubmit={handleBookingSubmit} className="space-y-4">
+          <p>Address: {stationToBook?.address}</p>
+
+          <label className="block">
+            Start Date and Time:
+            <input
+              type="datetime-local"
+              name="bookingStart"
+              value={bookingStart}
+              onChange={(e) => setBookingStart(e.target.value)}
+              required
+              className="border rounded px-2 py-1 mt-1 w-full"
+            />
+          </label>
+
+          <label className="block">
+            End Date and Time:
+            <input
+              type="datetime-local"
+              name="bookingEnd"
+              value={bookingEnd}
+              onChange={(e) => setBookingEnd(e.target.value)}
+              required
+              className="border rounded px-2 py-1 mt-1 w-full"
+            />
+          </label>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => setIsBookingModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">Confirm Booking</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Map with Markers and Popup */}
       <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
         {filteredStations.map((station) => (
           <Marker
@@ -277,11 +328,16 @@ const MapPage = () => {
             }}
           >
             <Popup>
-              <div className="station-popup">
+              <div className="station-popup space-y-2">
                 <h3 className="font-bold">{station.name}</h3>
                 <p>{station.address}</p>
-                <p>Available: {station.maxOccupation - station.currentOccupation}/{station.maxOccupation}</p>
-                <p>Charger Types: {station.chargerTypes?.join(', ') || 'N/A'}</p>
+                <p>
+                  Available: {station.maxOccupation - station.currentOccupation}/{station.maxOccupation}
+                </p>
+                <p>Charger Types: {station.chargerTypes?.join(", ") || "N/A"}</p>
+
+                {/* BOOK BUTTON */}
+                <Button onClick={() => handleBookStation(station)}>Book This Station</Button>
               </div>
             </Popup>
           </Marker>
