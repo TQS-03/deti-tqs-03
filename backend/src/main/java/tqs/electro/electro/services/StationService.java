@@ -47,6 +47,7 @@ public class StationService {
             existing.setLatitude(updatedStation.getLatitude());
             existing.setLongitude(updatedStation.getLongitude());
             existing.setChargerTypes(updatedStation.getChargerTypes());
+            existing.setPricePerKWh(updatedStation.getPricePerKWh());
             return stationRepository.save(existing);
         });
     }

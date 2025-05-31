@@ -24,6 +24,7 @@ export default function () {
     currentOccupation: 0,
     latitude: '40.7128',
     longitude: '74.0060',
+    pricePerKWh: 2.00,
     chargerTypes: ['CCS', 'TYPE 2']
   });
 
@@ -34,7 +35,6 @@ export default function () {
   };
 
   const res = http.post(baseUrl, payload, params);
-  console.log(payload);
 
   check(res, {
     'status is 200': (r) => r.status === 200,

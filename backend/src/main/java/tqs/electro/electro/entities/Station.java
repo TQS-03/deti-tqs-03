@@ -22,6 +22,7 @@ public class Station {
     private int currentOccupation;
     private String latitude;
     private String longitude;
+    private double pricePerKWh;
 
     @ElementCollection(targetClass = ChargerType.class)
     @Enumerated(EnumType.STRING)
@@ -92,6 +93,14 @@ public class Station {
 
     public void setChargerTypes(List<ChargerType> chargerTypes) {
         this.chargerTypes = chargerTypes;
+    }
+
+    public double getPricePerKWh() {
+        return pricePerKWh;
+    }
+
+    public void setPricePerKWh(double pricePerKWh) {
+        this.pricePerKWh = pricePerKWh;
     }
 
 }
