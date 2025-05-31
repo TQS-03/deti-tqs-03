@@ -3,35 +3,38 @@ package tqs.electro.electro.entities;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-public class Reservation {
+public class Consumption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne
-    private Person person;
-
-    @ManyToOne
     private Station station;
 
-    private LocalDateTime createdAt;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private boolean paid;
+    private double energyUsed; // in kWh
+    private double pricePerKWh;
 
-    public Reservation() {
-        this.paid = false;
-        this.createdAt = LocalDateTime.now();
+    public Duration getDuration() {
+        return Duration.between(startTime, endTime);
+    }
+
+    public double getCost() {
+        return energyUsed * pricePerKWh;
     }
 
 }
