@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export const Dropdown = ({
   options,
+  id,
   onSelect,
   placeholder = "Select an option",
   className = "",
@@ -19,6 +20,7 @@ export const Dropdown = ({
     <div className={`relative ${className}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        id={id}
         className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
       >
         {selectedValue
@@ -44,6 +46,7 @@ export const Dropdown = ({
             {options.map((option) => (
               <li
                 key={option.value}
+                id={option.id}
                 onClick={() => handleSelect(option.value)}
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
               >
