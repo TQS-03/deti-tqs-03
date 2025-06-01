@@ -5,9 +5,7 @@ import tqs.electro.electro.utils.ChargerType;
 import java.util.List;
 import java.util.UUID;
 
-public class StationRequestDto {
-
-    private UUID id;
+public class NewStationDTO {
 
     private String name;
     private String address;
@@ -18,30 +16,6 @@ public class StationRequestDto {
     private double pricePerKWh;
     private UUID personId;
     private List<ChargerType> chargerTypes;
-
-    public StationRequestDto(UUID id, String name, String address, int maxOccupation, int currentOccupation, String latitude, String longitude, double pricePerKWh, UUID personId, List<ChargerType> chargerTypes) {
-        this.id = id;
-        this.name = name;
-        this.address = address;
-        this.maxOccupation = maxOccupation;
-        this.currentOccupation = currentOccupation;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.pricePerKWh = pricePerKWh;
-        this.personId = personId;
-        this.chargerTypes = chargerTypes;
-    }
-
-    public StationRequestDto() {
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;

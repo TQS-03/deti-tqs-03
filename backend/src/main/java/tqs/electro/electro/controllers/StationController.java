@@ -2,6 +2,7 @@ package tqs.electro.electro.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tqs.electro.electro.dtos.NewStationDTO;
 import tqs.electro.electro.dtos.StationRequestDto;
 import tqs.electro.electro.entities.Station;
 import tqs.electro.electro.services.StationService;
@@ -36,12 +37,12 @@ public class StationController {
 
     // POST /station - Add a new station
     @PostMapping
-    public ResponseEntity<Station> addStation(@RequestBody StationRequestDto station) {
-        Station newsStation = stationService.addStation(station);
-        if (newsStation == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(newsStation);
+    public ResponseEntity<Station> addStation(@RequestBody NewStationDTO station) {
+            Station newsStation = stationService.addStation(station);
+            if (newsStation == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            return ResponseEntity.ok(newsStation);
     }
 
     // PUT /station/{id} - Update an existing station
