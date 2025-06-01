@@ -11,7 +11,6 @@ import tqs.electro.electro.dtos.RegisterRequest;
 import tqs.electro.electro.entities.Person;
 import tqs.electro.electro.repositories.PersonRepository;
 import tqs.electro.electro.services.LoginService;
-import tqs.electro.electro.utils.JwtUtil;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,25 +23,20 @@ public class LoginServiceTest {
     @Mock
     private PersonRepository userRepo;
 
-    @Mock
-    private JwtUtil jwtUtil;
-
     @InjectMocks
     private LoginService loginService;
 
 
     @Test
-    void register_ShouldCreateUserAndReturnToken() {
+    void register_ShouldCreateUser() {
         RegisterRequest request = new RegisterRequest("John", "Doe", "john@example.com", "password", false);
 
         when(userRepo.findByEmail("john@example.com")).thenReturn(Optional.empty());
-        when(jwtUtil.generateToken("john@example.com")).thenReturn("mocked-token");
 
         AuthResponse response = loginService.register(request);
 
         assertNotNull(response);
         assertEquals("john@example.com", response.getEmail());
-        assertEquals("mocked-token", response.getToken());
         verify(userRepo).save(any(Person.class));
     }
 
@@ -69,14 +63,13 @@ public class LoginServiceTest {
         user.setPassword_hash(encodedPassword);
 
         when(userRepo.findByEmail(email)).thenReturn(Optional.of(user));
-        when(jwtUtil.generateToken("Jane Smith")).thenReturn("mocked-token");
 
         LoginRequest request = new LoginRequest(email, rawPassword);
         AuthResponse response = loginService.login(request);
 
         assertNotNull(response);
-        assertEquals("mocked-token", response.getToken());
-        assertEquals(email, response.getEmail());
+        assertEquals("jane@example.com", response.getEmail());
+        assertEquals(response.getUserId(), user.getId());
     }
 
     @Test
