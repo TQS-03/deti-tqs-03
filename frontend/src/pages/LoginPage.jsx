@@ -12,29 +12,35 @@ const LoginPage = ({ setIsAuthenticated }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-
+      
         try {
-            const response = await fetch("backend/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email: username, password }),
-            });
-
-            if (!response.ok) {
-                const message = await response.text();
-                throw new Error(message || "Login failed");
-            }
-
-            const data = await response.json();
-            console.log("Login successful:", data);
-            setIsAuthenticated(true);
-            navigate("/map");
+          const response = await fetch("backend/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: username, password }),
+          });
+      
+          if (!response.ok) {
+            const message = await response.text();
+            throw new Error(message || "Login failed");
+          }
+      
+          const data = await response.json();
+          console.log("Login successful:", data);
+      
+          // Save user data in localStorage for later use
+          localStorage.setItem("user", JSON.stringify(data));
+      
+          setIsAuthenticated(true);
+          navigate("/map");
         } catch (err) {
-            setError(err.message);
+          setError(err.message);
         }
-    };
+      };
+      
+      
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
