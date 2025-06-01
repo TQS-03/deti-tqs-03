@@ -30,8 +30,11 @@ public class LoginServiceTest {
     @Test
     void register_ShouldCreateUser() {
         RegisterRequest request = new RegisterRequest("John", "Doe", "john@example.com", "password", false);
+        Person person = new Person();
+        person.setId(UUID.randomUUID());
 
         when(userRepo.findByEmail("john@example.com")).thenReturn(Optional.empty());
+        when(userRepo.save(any())).thenReturn(person);
 
         AuthResponse response = loginService.register(request);
 
