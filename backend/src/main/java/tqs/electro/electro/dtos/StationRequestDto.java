@@ -1,19 +1,12 @@
-package tqs.electro.electro.entities;
+package tqs.electro.electro.dtos;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import tqs.electro.electro.utils.ChargerType;
 
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@AllArgsConstructor
-public class Station {
+public class StationRequestDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String name;
@@ -23,13 +16,8 @@ public class Station {
     private String latitude;
     private String longitude;
     private double pricePerKWh;
-
-    @ElementCollection(targetClass = ChargerType.class)
-    @Enumerated(EnumType.STRING)
+    private UUID personId;
     private List<ChargerType> chargerTypes;
-
-    public Station() {
-    }
 
     public UUID getId() {
         return id;
@@ -87,14 +75,6 @@ public class Station {
         this.longitude = longitude;
     }
 
-    public List<ChargerType> getChargerTypes() {
-        return chargerTypes;
-    }
-
-    public void setChargerTypes(List<ChargerType> chargerTypes) {
-        this.chargerTypes = chargerTypes;
-    }
-
     public double getPricePerKWh() {
         return pricePerKWh;
     }
@@ -103,4 +83,19 @@ public class Station {
         this.pricePerKWh = pricePerKWh;
     }
 
+    public UUID getPersonId() {
+        return personId;
+    }
+
+    public void setPersonId(UUID personId) {
+        this.personId = personId;
+    }
+
+    public List<ChargerType> getChargerTypes() {
+        return chargerTypes;
+    }
+
+    public void setChargerTypes(List<ChargerType> chargerTypes) {
+        this.chargerTypes = chargerTypes;
+    }
 }

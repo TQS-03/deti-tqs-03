@@ -10,15 +10,19 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import tqs.electro.electro.entities.Person;
 import tqs.electro.electro.entities.Station;
+import tqs.electro.electro.repositories.PersonRepository;
 import tqs.electro.electro.repositories.StationRepository;
 import tqs.electro.electro.utils.ChargerType;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,9 +35,21 @@ class StationControllerIT {
     @Autowired
     private StationRepository stationRepository;
 
+    @Autowired
+    private PersonRepository personRepository;
+
+    private UUID id;
+
+
     @BeforeEach
     void cleanup() {
         stationRepository.deleteAll();
+        personRepository.deleteAll();
+        Person person = new Person();
+        person.setIsWorker(true);
+        person.setFirstName("John");
+        person.setLastName("Smith");
+        id = personRepository.save(person).getId();
     }
 
     @Test
@@ -57,7 +73,8 @@ class StationControllerIT {
                     "currentOccupation":1,
                     "latitude":"0.0",
                     "longitude":"0.0",
-                    "chargerTypes":["Type 2"]
+                    "chargerTypes":["Type 2"],
+                    "pricePerKWh":0.0
                 },
                 {
                     "id":"%s",
@@ -67,21 +84,22 @@ class StationControllerIT {
                     "currentOccupation":1,
                     "latitude":"0.0",
                     "longitude":"0.0",
-                    "chargerTypes":["CCS"]
+                    "chargerTypes":["CCS"],
+                    "pricePerKWh":0.0
                 }
             ]
         """,
         s1.getId().toString(),
         s2.getId().toString());
 
-    // when
-    MvcResult result = mockMvc.perform(get("/backend/station"))
-        .andExpect(status().isOk())
-        .andReturn();
+        // when
+        MvcResult result = mockMvc.perform(get("/backend/station"))
+            .andExpect(status().isOk())
+            .andReturn();
 
-    String actualJson = result.getResponse().getContentAsString();
-    JSONAssert.assertEquals(objectJson, actualJson, true);
-  }
+        String actualJson = result.getResponse().getContentAsString();
+        JSONAssert.assertEquals(objectJson, actualJson, true);
+    }
 
     @Test
     void whenGetStationById_thenReturnOne() throws Exception {
@@ -98,17 +116,19 @@ class StationControllerIT {
     @Test
     void whenAddStation_thenPersisted() throws Exception {
         // raw JSON payload
-        String payload = """
-            {
-                "name":"NewOne",
-                "address":"Addr",
-                "maxOccupation":12,
-                "currentOccupation":3,
-                "latitude":"12.3",
-                "longitude":"45.6",
-                "chargerTypes":["TYPE 1","TESLA"]
-            }
-        """;
+        String payload = String.format("""
+                {
+                  "name": "NewOne",
+                  "address": "NewAddr",
+                  "maxOccupation": 99,
+                  "currentOccupation": 9,
+                  "latitude": "99.9",
+                  "longitude": "88.8",
+                  "chargerTypes": ["CCS"],
+                  "pricePerKWh": 1.0,
+                  "personId": "%s"
+                }
+            """, id.toString());
 
         // when
         mockMvc.perform(post("/backend/station")
@@ -128,17 +148,20 @@ class StationControllerIT {
         Station existing = stationRepository.save(createStation("OldName", ChargerType.SCHUKO));
 
         // new JSON for update
-        String updateJson = """
-            {
-                "name":"UpdatedName",
-                "address":"NewAddr",
-                "maxOccupation":99,
-                "currentOccupation":9,
-                "latitude":"99.9",
-                "longitude":"88.8",
-                "chargerTypes":["CCS"]
-            }
-        """;
+        String updateJson = String.format("""
+                {
+                  "name": "UpdatedName",
+                  "address": "NewAddr",
+                  "maxOccupation": 99,
+                  "currentOccupation": 9,
+                  "latitude": "99.9",
+                  "longitude": "88.8",
+                  "chargerTypes": ["CCS"],
+                  "pricePerKWh": 1.0,
+                  "personId": "%s"
+                }
+                """, id.toString());
+
 
         // when
         mockMvc.perform(put("/backend/station/{id}", existing.getId())
@@ -155,45 +178,45 @@ class StationControllerIT {
         assertThat(reloaded.getChargerTypes()).containsExactly(ChargerType.CCS);
     }
 
-  private Station createStation(String name, ChargerType type) {
-    Station s = new Station();
-    s.setName(name);
-    s.setAddress("addr");
-    s.setMaxOccupation(5);
-    s.setCurrentOccupation(1);
-    s.setLatitude("0.0");
-    s.setLongitude("0.0");
-    s.setChargerTypes(List.of(type));
-    return s;
-  }
+    private Station createStation(String name, ChargerType type) {
+        Station s = new Station();
+        s.setName(name);
+        s.setAddress("addr");
+        s.setMaxOccupation(5);
+        s.setCurrentOccupation(1);
+        s.setLatitude("0.0");
+        s.setLongitude("0.0");
+        s.setChargerTypes(List.of(type));
+        return s;
+    }
 
-  @Test
-  void whenFilterStationByType_thenReturnMatchingStations() throws Exception {
-    // given
-    Station s1 = createStation("Station1", ChargerType.TYPE2);
-    Station s2 = createStation("Station2", ChargerType.CCS);
-    Station s3 = createStation("Station3", ChargerType.TYPE2);
-    stationRepository.saveAll(List.of(s1, s2, s3));
+    @Test
+        void whenFilterStationByType_thenReturnMatchingStations() throws Exception {
+        // given
+        Station s1 = createStation("Station1", ChargerType.TYPE2);
+        Station s2 = createStation("Station2", ChargerType.CCS);
+        Station s3 = createStation("Station3", ChargerType.TYPE2);
+        stationRepository.saveAll(List.of(s1, s2, s3));
 
-    // when
-    MvcResult result = mockMvc.perform(get("/backend/station/filter/{type}", "TYPE2"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].chargerTypes[0]").value("Type 2"))
-        .andExpect(jsonPath("$[1].chargerTypes[0]").value("Type 2"))
-        .andReturn();
+        // when
+        MvcResult result = mockMvc.perform(get("/backend/station/filter/{type}", "TYPE2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].chargerTypes[0]").value("Type 2"))
+                .andExpect(jsonPath("$[1].chargerTypes[0]").value("Type 2"))
+                .andReturn();
 
-    String json = result.getResponse().getContentAsString();
-    System.out.println("Filtered result: " + json);
-  }
+        String json = result.getResponse().getContentAsString();
+        System.out.println("Filtered result: " + json);
+    }
 
-  @Test
-  void whenFilterStationByType_thenReturnNotFound() throws Exception {
-    // no station saved with this charger type
-    stationRepository.save(createStation("OnlyStation", ChargerType.TESLA));
+    @Test
+    void whenFilterStationByType_thenReturnNotFound() throws Exception {
+        // no station saved with this charger type
+        stationRepository.save(createStation("OnlyStation", ChargerType.TESLA));
 
-    mockMvc.perform(get("/backend/station/filter/{type}", "CHADEMO"))
-        .andExpect(status().isNotFound());
-  }
+        mockMvc.perform(get("/backend/station/filter/{type}", "CHADEMO"))
+                .andExpect(status().isNotFound());
+    }
 
 }
