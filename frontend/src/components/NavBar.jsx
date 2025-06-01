@@ -35,20 +35,30 @@ function NavBar({
         
         <ul className={styles.navMenu}>
           {navLinks.map((link, index) => (
-            <li key={`${link.path}-${index}`} className={styles.navItem}>
-              <Link
-                to={link.path}
-                className={`${styles.navLinks} ${
-                  showActive && isActive(link.path, link.exact) ? styles.active : ""
-                }`}
-                aria-current={
-                  showActive && isActive(link.path, link.exact) ? "page" : undefined
-                }
-              >
-                {link.icon && <span className={styles.navIcon}>{link.icon}</span>}
-                {link.text}
-              </Link>
-            </li>
+              <li key={`${link.path}-${index}`} className={styles.navItem}>
+                {link.onClick ? (
+                    <button
+                        onClick={link.onClick}
+                        className={`${styles.navLinks}`}
+                    >
+                      {link.icon && <span className={styles.navIcon}>{link.icon}</span>}
+                      {link.text}
+                    </button>
+                ) : (
+                    <Link
+                        to={link.path}
+                        className={`${styles.navLinks} ${
+                            showActive && isActive(link.path, link.exact) ? styles.active : ""
+                        }`}
+                        aria-current={
+                          showActive && isActive(link.path, link.exact) ? "page" : undefined
+                        }
+                    >
+                      {link.icon && <span className={styles.navIcon}>{link.icon}</span>}
+                      {link.text}
+                    </Link>
+                )}
+              </li>
           ))}
         </ul>
       </div>
