@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState } from "react";
 import { Button } from "../components/ui/Button.jsx";
 import { Input } from "../components/ui/Input.jsx";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = ({ setIsAuthenticated }) => {
     const [username, setUsername] = useState("");
@@ -9,71 +9,57 @@ const LoginPage = ({ setIsAuthenticated }) => {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (username === "admin" && password === "admin") {
+        setError("");
+
+        try {
+            const response = await fetch("backend/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email: username, password }),
+            });
+
+            if (!response.ok) {
+                const message = await response.text();
+                throw new Error(message || "Login failed");
+            }
+
+            const data = await response.json();
+            console.log("Login successful:", data);
             setIsAuthenticated(true);
             navigate("/map");
-        } else {
-            setError("Invalid username or password");
+        } catch (err) {
+            setError(err.message);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-                <div className="text-center">
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                        Sign in to Electro
-                    </h2>
-                </div>
-                {error && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md" role="alert">
-                        <span className="block sm:inline">{error}</span>
-                    </div>
-                )}
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <div className="rounded-md shadow-sm space-y-4">
-                        <Input
-                            label="Username"
-                            name="username"
-                            type="text"
-                            required
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="Enter your username"
-                        />
-                        <Input
-                            label="Password"
-                            name="password"
-                            type="password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
-                        />
-                    </div>
-
-                    <div>
-                        <Button
-                            type="submit"
-                            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                            Sign in
-                        </Button>
-                    </div>
-                </form>
-
-                <div className="text-center text-sm text-gray-600">
-                    Don't have an account?{' '}
-                    <Link
-                        to="/register"
-                        className="font-medium text-blue-600 hover:text-blue-500"
-                    >
-                        Register here
-                    </Link>
-                </div>
-            </div>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+            <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-md">
+                <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+                <Input
+                    type="email"
+                    placeholder="Email"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                />
+                <Input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="mt-4"
+                />
+                {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                <Button type="submit" className="mt-6 w-full">
+                    Login
+                </Button>
+            </form>
         </div>
     );
 };
