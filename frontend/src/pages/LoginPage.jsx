@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "../components/ui/Button.jsx";
 import { Input } from "../components/ui/Input.jsx";
 
+// eslint-disable-next-line react/prop-types
 const LoginPage = ({ setIsAuthenticated }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -86,7 +87,7 @@ const LoginPage = ({ setIsAuthenticated }) => {
                 </form>
 
                 <div className="text-center text-sm text-gray-600">
-                    Don't have an account?{' '}
+                    Don&#39;t have an account?{' '}
                     <Link
                         to="/register"
                         className="font-medium text-blue-600 hover:text-blue-500"
