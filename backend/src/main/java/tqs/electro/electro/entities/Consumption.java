@@ -29,6 +29,14 @@ public class Consumption {
     private double energyUsed; // in kWh
     private double pricePerKWh;
 
+    public Duration getDuration() {
+        return Duration.between(startTime, endTime);
+    }
+
+    public double getCost() {
+        return energyUsed * pricePerKWh;
+    }
+
     public UUID getId() {
         return id;
     }
@@ -76,13 +84,4 @@ public class Consumption {
     public void setPricePerKWh(double pricePerKWh) {
         this.pricePerKWh = pricePerKWh;
     }
-
-    public Duration getDuration() {
-        return Duration.between(startTime, endTime);
-    }
-
-    public double getCost() {
-        return energyUsed * pricePerKWh;
-    }
-
 }
