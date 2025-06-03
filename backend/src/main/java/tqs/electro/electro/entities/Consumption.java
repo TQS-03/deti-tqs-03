@@ -10,11 +10,11 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Setter
+@Getter
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
 public class Consumption {
 
     @Id
@@ -28,6 +28,14 @@ public class Consumption {
     private LocalDateTime endTime;
     private double energyUsed; // in kWh
     private double pricePerKWh;
+
+    public Duration getDuration() {
+        return Duration.between(startTime, endTime);
+    }
+
+    public double getCost() {
+        return energyUsed * pricePerKWh;
+    }
 
     public UUID getId() {
         return id;
@@ -76,13 +84,4 @@ public class Consumption {
     public void setPricePerKWh(double pricePerKWh) {
         this.pricePerKWh = pricePerKWh;
     }
-
-    public Duration getDuration() {
-        return Duration.between(startTime, endTime);
-    }
-
-    public double getCost() {
-        return energyUsed * pricePerKWh;
-    }
-
 }

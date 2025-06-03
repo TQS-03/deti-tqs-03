@@ -10,8 +10,6 @@ import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
-@Getter
-@Setter
 public class Reservation {
 
     @Id

@@ -35,7 +35,7 @@ public class LoginService {
         Person saved = userRepo.save(user);
         user.setId(saved.getId());
 
-        return new AuthResponse(user.getId(), user.getEmail());
+        return new AuthResponse(user.getId(), user.getEmail(), user.isWorker());
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -44,6 +44,6 @@ public class LoginService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword_hash())) {
             throw new RuntimeException("Invalid credentials");
         }
-        return new AuthResponse(user.getId(), user.getEmail());
+        return new AuthResponse(user.getId(), user.getEmail(), user.isWorker());
     }
 }
