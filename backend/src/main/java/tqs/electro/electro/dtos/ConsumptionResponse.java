@@ -6,8 +6,7 @@ import tqs.electro.electro.entities.Consumption;
 
 import java.time.Duration;
 
-@Getter
-@Setter
+
 public class ConsumptionResponse {
 
     private Consumption consumption;

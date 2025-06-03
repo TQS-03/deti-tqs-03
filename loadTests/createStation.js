@@ -16,7 +16,60 @@ export let options = {
 
 const baseUrl = 'http://localhost:8080/backend/station';
 
-export default function () {
+const userUrl = 'http://localhost:8080/backend/auth/register';
+
+export function setup() {
+  const uniqueEmail = `loadtest_user_${Math.random().toString(36).substring(7)}@example.com`;
+
+  const userPayload = JSON.stringify({
+    firstName: 'Load',
+    lastName: 'Tester',
+    email: uniqueEmail,
+    password: 'Passw0rd!',
+    isWorker: true
+  });
+
+  const userParams = {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
+
+  const userRes = http.post(userUrl, userPayload, userParams);
+
+  console.log(userRes.body)
+
+  check(userRes, {
+    'user create → status 200': (r) => r.status === 200 || r.status === 201,
+    'user create → has userId': (r) => {
+      try {
+        const body = r.json();
+        return body.id !== undefined || body.userId !== undefined;
+      } catch (e) {
+        return false;
+      }
+    },
+  });
+
+  let userId = null;
+  try {
+    const body = userRes.json();
+    // if your backend returns { "id": "...", ... }, pick whichever key applies:
+    userId = body.id || body.userId || null;
+  } catch (e) {
+    // leave userId as null if parsing fails
+  }
+
+  if (!userId) {
+    throw new Error('setup(): user creation failed, no userId returned');
+  }
+
+  return { userId };
+}
+
+export default function (data) {
+  const createdUserId = data.userId;
+
   const payload = JSON.stringify({
     name: `Station-${Math.random().toString(36).substring(7)}`,
     address: '123 Load Test Blvd',
@@ -25,6 +78,7 @@ export default function () {
     latitude: '40.7128',
     longitude: '74.0060',
     pricePerKWh: 2.00,
+    personId: createdUserId,
     chargerTypes: ['CCS', 'TYPE 2']
   });
 
