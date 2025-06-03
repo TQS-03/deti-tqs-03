@@ -473,7 +473,7 @@ const MapPage = () => {
                         Book This Station
                       </Button>
                       <Link
-                          to={`/station/${station.id}/consumption`}
+                          to={`/consumption/${station.id}`}
                           className="font-medium text-blue-600 hover:text-blue-500 text-center"
                       >
                         View Consumption
