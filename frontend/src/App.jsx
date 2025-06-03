@@ -6,6 +6,9 @@ import MapPage from "./pages/MapPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProfilePage from "./pages/ProfilePage";
+import PaymentHistoryPage from "./pages/PaymentHistoryPage";
+import ConsumptionPage from "./pages/ConsumptionPage";
+import BookingPage from "./pages/BookingPage";
 import ElectroIcon from "./assets/ElectroIcon.png";
 
 function AppWrapper() {
@@ -98,6 +101,9 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/map" element={<PrivateRoute element={<MapPage />} />} />
             <Route path="/profile" element={<PrivateRoute element={<ProfilePage />} />} />
+            <Route path="/bookings" element={<BookingPage />} />
+            <Route path="/consumption/:id" element={<PrivateRoute element={<ConsumptionPage />} />} />
+            <Route path="/payments" element={<PrivateRoute element={<PaymentHistoryPage />} />} />
           </Routes>
         </main>
 

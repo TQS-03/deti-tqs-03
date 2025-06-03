@@ -19,7 +19,9 @@ function NavBar({
     { path: "/", text: "Home", exact: true },
     { path: "/map", text: "Interactive Map" },
     ...(user ? [{ path: "/bookings", text: "My Bookings" }] : []),
-    { path: "/about", text: "About Us" }
+    { path: "/about", text: "About Us" },
+    { path: "/consumption/:id", text: "Consuption" },
+    { path: "/payments", text: "Payment" }
   ];
 
   const isActive = (path, exact = false) => {
