@@ -43,7 +43,7 @@ public class LoginControllerTest {
         req.setPassword("password");
         req.setIsWorker(false);
 
-        AuthResponse authRes = new AuthResponse(UUID.randomUUID(), "john.doe@example.com");
+        AuthResponse authRes = new AuthResponse(UUID.randomUUID(), "john.doe@example.com", false);
         when(loginService.register(any(RegisterRequest.class))).thenReturn(authRes);
 
         mockMvc.perform(post("/backend/auth/register")
@@ -77,7 +77,7 @@ public class LoginControllerTest {
         req.setEmail("john.doe@example.com");
         req.setPassword("password");
 
-        AuthResponse authRes = new AuthResponse(UUID.randomUUID(), "john.doe@example.com");
+        AuthResponse authRes = new AuthResponse(UUID.randomUUID(), "john.doe@example.com", true);
         when(loginService.login(any(LoginRequest.class))).thenReturn(authRes);
 
         mockMvc.perform(post("/backend/auth/login")

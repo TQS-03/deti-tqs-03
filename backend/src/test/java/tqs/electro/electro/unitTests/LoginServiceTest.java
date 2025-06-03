@@ -64,6 +64,7 @@ public class LoginServiceTest {
         user.setLastName("Smith");
         user.setEmail(email);
         user.setPassword_hash(encodedPassword);
+        user.setIsWorker(true);
 
         when(userRepo.findByEmail(email)).thenReturn(Optional.of(user));
 

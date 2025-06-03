@@ -42,6 +42,7 @@ function App() {
             localStorage.setItem("user", JSON.stringify({
                 userId: userData.userId,
                 email: userData.email,
+                isWorker: userData.isWorker,
                 timestamp: new Date().getTime()
             }));
         } else {
@@ -55,9 +56,10 @@ function App() {
   };
 
   const PrivateRoute = ({ element }) => {
-    const user = localStorage.getItem("user");
-    const isUserValid = user && (new Date().getTime() - JSON.parse(user).timestamp <= 604800000);
-    return isAuthenticated || isUserValid ? element : <Navigate to="/login" />;
+      const user = localStorage.getItem("user");
+      const userObj = user ? JSON.parse(user) : null;
+      const isUserValid = userObj && (new Date().getTime() - userObj.timestamp <= 604800000);
+      return isAuthenticated || isUserValid ? element : <Navigate to="/login" />;
   };
 
   const navLinks = [
