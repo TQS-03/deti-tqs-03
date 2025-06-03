@@ -1,9 +1,6 @@
 package tqs.electro.electro.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.util.UUID;
 
@@ -18,11 +15,16 @@ public class PaymentCard {
     private String expiryDate;
     private String cvv;
 
-    public PaymentCard(UUID id, String cardNumber, String expiryDate, String cvv) {
+    @OneToOne
+    @JoinColumn(name = "person_id", referencedColumnName = "id")
+    private Person owner;
+
+    public PaymentCard(UUID id, String cardNumber, String expiryDate, String cvv, Person owner) {
         this.id = id;
         this.cardNumber = cardNumber;
         this.expiryDate = expiryDate;
         this.cvv = cvv;
+        this.owner = owner;
     }
 
     public PaymentCard() {}
@@ -59,4 +61,11 @@ public class PaymentCard {
         this.cvv = cvv;
     }
 
+    public Person getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Person owner) {
+        this.owner = owner;
+    }
 }
