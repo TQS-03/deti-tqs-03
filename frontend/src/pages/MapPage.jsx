@@ -7,6 +7,7 @@ import { Input } from "../components/ui/Input.jsx";
 import { Select } from "../components/ui/Select.jsx";
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import { Link } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 
 import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
@@ -26,7 +27,7 @@ const chargerTypes = [
   { value: "Type 2", label: "Type 2" },
   { value: "CCS", label: "CCS" },
   { value: "CHAdeMO", label: "CHAdeMO" },
-  { value: "TESLA", label: "Tesla" },
+  { value: "Tesla", label: "Tesla" },
   { value: "Schuko", label: "Schuko" },
 ];
 
@@ -270,6 +271,8 @@ const MapPage = () => {
     }
   };
 
+
+
   return (
       <div className="container mx-auto px-4 py-8">
         <div className="home-page">
@@ -470,6 +473,12 @@ const MapPage = () => {
                     <Button onClick={() => handleBookStation(station)}>
                       Book This Station
                     </Button>
+                    <Link 
+                      to={`/consumption/${station.id}`}
+                      className="block px-4 py-2 bg-blue-600 text-white text-center rounded hover:bg-blue-700"
+                    >
+                      View Consumption Details
+                    </Link>
                   </div>
                 </Popup>
               </Marker>
