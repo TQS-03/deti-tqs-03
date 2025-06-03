@@ -1,9 +1,6 @@
 package tqs.electro.electro.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.util.UUID;
 
@@ -19,6 +16,9 @@ public class Person {
     private String email;
     private String password_hash;
     private Boolean isWorker;
+
+    @OneToOne(mappedBy = "owner", cascade = CascadeType.ALL)
+    private PaymentCard paymentCard;
 
     public Person(UUID id, String firstName, String lastName, String email, String password_hash, Boolean isWorker) {
         this.id = id;
@@ -77,6 +77,14 @@ public class Person {
 
     public void setIsWorker(Boolean worker) {
         isWorker = worker;
+    }
+
+    public PaymentCard getPaymentCard() {
+        return paymentCard;
+    }
+
+    public void setPaymentCard(PaymentCard paymentCard) {
+        this.paymentCard = paymentCard;
     }
 
 }
