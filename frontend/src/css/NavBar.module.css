@@ -1,79 +1,172 @@
 .navbar {
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 1rem 2rem;
-    width: 100%;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem 2rem;
+  width: 100%;
+  position: relative;
+}
+
+.navbarContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.navbarLogo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #3182ce;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.navbarLogo:hover {
+  color: #2c5282;
+}
+
+.navMenu {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.navLinks {
+  text-decoration: none;
+  color: #4a5568;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navLinks:hover {
+  color: #3182ce;
+}
+
+.navLinks.active {
+  color: #3182ce;
+  border-bottom: 2px solid #3182ce;
+}
+
+.navIcon {
+  display: flex;
+  align-items: center;
+}
+
+/* Dropdown Styles */
+.dropdownContainer {
+  position: relative;
+}
+
+.profileButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.profileButton:hover {
+  background-color: #f0f4f8;
+}
+
+.userInitial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #3182ce;
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+.userEmail {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdownMenu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+}
+
+.dropdownItem {
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: #2d3748;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.dropdownItem:hover {
+  background-color: #f7fafc;
+}
+
+.logoutItem {
+  color: #e53e3e;
+  border-top: 1px solid #e2e8f0;
+}
+
+.logoutItem:hover {
+  background-color: #fff5f5;
+}
+
+.dropdownItem i {
+  width: 20px;
+  text-align: center;
+  margin-right: 8px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem;
   }
-  
-  .navbarContainer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  .navbarLogo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #3182ce;
-    text-decoration: none;
-    transition: color 0.3s ease;
-  }
-  
-  .navbarLogo:hover {
-    color: #2c5282;
-  }
-  
+
   .navMenu {
-    display: flex;
-    gap: 1.5rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    gap: 1rem;
   }
-  
-  .navItem {
-    display: flex;
-    align-items: center;
+
+  .navbarLogo {
+    font-size: 1.25rem;
   }
-  
-  .navLinks {
-    text-decoration: none;
-    color: #4a5568;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    padding: 0.5rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+
+  .userEmail {
+    display: none;
   }
-  
-  .navLinks:hover {
-    color: #3182ce;
-  }
-  
-  .navLinks.active {
-    color: #3182ce;
-    border-bottom: 2px solid #3182ce;
-  }
-  
-  .navIcon {
-    display: flex;
-    align-items: center;
-  }
-  
-  /* Mobile responsiveness */
-  @media (max-width: 768px) {
-    .navbar {
-      padding: 1rem;
-    }
-    
-    .navMenu {
-      gap: 1rem;
-    }
-    
-    .navbarLogo {
-      font-size: 1.25rem;
-    }
-  }
+}

@@ -10,15 +10,19 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import tqs.electro.electro.entities.Person;
 import tqs.electro.electro.entities.Station;
+import tqs.electro.electro.repositories.PersonRepository;
 import tqs.electro.electro.repositories.StationRepository;
 import tqs.electro.electro.utils.ChargerType;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,9 +35,21 @@ class StationControllerIT {
     @Autowired
     private StationRepository stationRepository;
 
+    @Autowired
+    private PersonRepository personRepository;
+
+    private UUID id;
+
+
     @BeforeEach
     void cleanup() {
         stationRepository.deleteAll();
+        personRepository.deleteAll();
+        Person person = new Person();
+        person.setIsWorker(true);
+        person.setFirstName("John");
+        person.setLastName("Smith");
+        id = personRepository.save(person).getId();
     }
 
     @Test
@@ -100,17 +116,19 @@ class StationControllerIT {
     @Test
     void whenAddStation_thenPersisted() throws Exception {
         // raw JSON payload
-        String payload = """
-            {
-                "name":"NewOne",
-                "address":"Addr",
-                "maxOccupation":12,
-                "currentOccupation":3,
-                "latitude":"12.3",
-                "longitude":"45.6",
-                "chargerTypes":["TYPE 1","TESLA"]
-            }
-        """;
+        String payload = String.format("""
+                {
+                  "name": "NewOne",
+                  "address": "NewAddr",
+                  "maxOccupation": 99,
+                  "currentOccupation": 9,
+                  "latitude": "99.9",
+                  "longitude": "88.8",
+                  "chargerTypes": ["CCS"],
+                  "pricePerKWh": 1.0,
+                  "personId": "%s"
+                }
+            """, id.toString());
 
         // when
         mockMvc.perform(post("/backend/station")
@@ -130,17 +148,20 @@ class StationControllerIT {
         Station existing = stationRepository.save(createStation("OldName", ChargerType.SCHUKO));
 
         // new JSON for update
-        String updateJson = """
-            {
-                "name":"UpdatedName",
-                "address":"NewAddr",
-                "maxOccupation":99,
-                "currentOccupation":9,
-                "latitude":"99.9",
-                "longitude":"88.8",
-                "chargerTypes":["CCS"]
-            }
-        """;
+        String updateJson = String.format("""
+                {
+                  "name": "UpdatedName",
+                  "address": "NewAddr",
+                  "maxOccupation": 99,
+                  "currentOccupation": 9,
+                  "latitude": "99.9",
+                  "longitude": "88.8",
+                  "chargerTypes": ["CCS"],
+                  "pricePerKWh": 1.0,
+                  "personId": "%s"
+                }
+                """, id.toString());
+
 
         // when
         mockMvc.perform(put("/backend/station/{id}", existing.getId())

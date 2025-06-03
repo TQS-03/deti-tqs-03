@@ -5,7 +5,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tqs.electro.electro.dtos.NewStationDTO;
+import tqs.electro.electro.dtos.StationRequestDto;
+import tqs.electro.electro.entities.Person;
 import tqs.electro.electro.entities.Station;
+import tqs.electro.electro.repositories.PersonRepository;
 import tqs.electro.electro.repositories.StationRepository;
 import tqs.electro.electro.services.StationService;
 import tqs.electro.electro.utils.ChargerType;
@@ -26,6 +30,9 @@ class StationServiceTest {
 
     @Mock
     private StationRepository stationRepository;
+
+    @Mock
+    private PersonRepository personRepository;
 
     @Test
     void testGetAllStations() {
@@ -61,12 +68,18 @@ class StationServiceTest {
 
     @Test
     void testAddStation() {
+        NewStationDTO stationReq = new NewStationDTO();
         Station station = new Station();
-        when(stationRepository.save(station)).thenReturn(station);
 
-        Station saved = stationService.addStation(station);
+        Person person = new Person();
+        person.setIsWorker(true);
+
+        when(stationRepository.save(any())).thenReturn(station);
+        when(personRepository.findById(any())).thenReturn(Optional.of(person));
+
+        Station saved = stationService.addStation(stationReq);
         assertEquals(station, saved);
-        verify(stationRepository).save(station);
+        verify(stationRepository).save(any(Station.class));
     }
 
     @Test
@@ -75,7 +88,7 @@ class StationServiceTest {
         Station existing = new Station();
         existing.setId(id);
 
-        Station update = new Station();
+        StationRequestDto update = new StationRequestDto();
         update.setName("New Name");
         update.setAddress("New Address");
         update.setMaxOccupation(10);
@@ -84,8 +97,13 @@ class StationServiceTest {
         update.setLongitude("-8.6");
         update.setChargerTypes(List.of(ChargerType.TYPE2, ChargerType.CCS));
 
+        Person person = new Person();
+        person.setIsWorker(true);
+
         when(stationRepository.findById(id)).thenReturn(Optional.of(existing));
         when(stationRepository.save(any())).thenReturn(existing);
+        when(personRepository.findById(any())).thenReturn(Optional.of(person));
+
 
         Optional<Station> updated = stationService.updateStation(id, update);
 
@@ -99,8 +117,12 @@ class StationServiceTest {
     @Test
     void testUpdateStation_notFound() {
         UUID id = UUID.randomUUID();
-        Station update = new Station();
+        StationRequestDto update = new StationRequestDto();
+        Person person = new Person();
+        person.setIsWorker(true);
+
         when(stationRepository.findById(id)).thenReturn(Optional.empty());
+        when(personRepository.findById(any())).thenReturn(Optional.of(person));
 
         Optional<Station> updated = stationService.updateStation(id, update);
         assertFalse(updated.isPresent());

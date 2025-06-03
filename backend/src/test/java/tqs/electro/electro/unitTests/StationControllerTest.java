@@ -9,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tqs.electro.electro.controllers.StationController;
+import tqs.electro.electro.dtos.NewStationDTO;
+import tqs.electro.electro.dtos.StationRequestDto;
 import tqs.electro.electro.entities.Station;
 import tqs.electro.electro.services.StationService;
 import tqs.electro.electro.utils.ChargerType;
@@ -85,7 +87,7 @@ class StationControllerTest {
         Station station = createSampleStation(null);
         Station savedStation = createSampleStation(UUID.randomUUID());
 
-        Mockito.when(stationService.addStation(any(Station.class))).thenReturn(savedStation);
+        Mockito.when(stationService.addStation(any(NewStationDTO.class))).thenReturn(savedStation);
 
         mockMvc.perform(post("/backend/station")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -99,7 +101,7 @@ class StationControllerTest {
         UUID id = UUID.randomUUID();
         Station updated = createSampleStation(id);
 
-        Mockito.when(stationService.updateStation(eq(id), any(Station.class)))
+        Mockito.when(stationService.updateStation(eq(id), any(StationRequestDto.class)))
                 .thenReturn(Optional.of(updated));
 
         mockMvc.perform(put("/backend/station/{id}", id)
@@ -114,7 +116,7 @@ class StationControllerTest {
         UUID id = UUID.randomUUID();
         Station updated = createSampleStation(id);
 
-        Mockito.when(stationService.updateStation(eq(id), any(Station.class)))
+        Mockito.when(stationService.updateStation(eq(id), any(StationRequestDto.class)))
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(put("/backend/station/{id}", id)
