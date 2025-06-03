@@ -5,7 +5,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tqs.electro.electro.dtos.NewStationDTO;
 import tqs.electro.electro.dtos.StationRequestDto;
 import tqs.electro.electro.entities.Person;
 import tqs.electro.electro.entities.Station;
@@ -68,7 +67,7 @@ class StationServiceTest {
 
     @Test
     void testAddStation() {
-        NewStationDTO stationReq = new NewStationDTO();
+        StationRequestDto stationReq = new StationRequestDto();
         Station station = new Station();
 
         Person person = new Person();

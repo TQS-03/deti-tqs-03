@@ -1,7 +1,6 @@
 package tqs.electro.electro.services;
 
 import org.springframework.stereotype.Service;
-import tqs.electro.electro.dtos.NewStationDTO;
 import tqs.electro.electro.dtos.StationRequestDto;
 import tqs.electro.electro.entities.Person;
 import tqs.electro.electro.entities.Station;
@@ -35,7 +34,7 @@ public class StationService {
         return stationRepository.findById(id);
     }
 
-    public Station addStation(NewStationDTO stationReq) {
+    public Station addStation(StationRequestDto stationReq) {
         try {
             if (this.checkUsersAuthorization(stationReq.getPersonId())){
                 Station station = new Station();

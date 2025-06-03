@@ -54,11 +54,12 @@ const MapPage = () => {
   const [stationToBook, setStationToBook] = useState(null);
   const [bookingStart, setBookingStart] = useState("");
   const [bookingEnd, setBookingEnd] = useState("");
-  const [userReservations, setUserReservations] = useState([]);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     fetchStations();
-    fetchUserReservations();
+    const userData = JSON.parse(localStorage.getItem("user"));
+    setUser(userData);
   }, []);
 
   const fetchStations = async () => {
@@ -80,28 +81,12 @@ const MapPage = () => {
     }
   };
 
-  const fetchUserReservations = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (user?.userId) {
-        const response = await fetch(`backend/reservation?personId=${user.userId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setUserReservations(data);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to fetch user reservations:", err);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user || !user.userId) {
-        throw new Error("User not authenticated");
+      if (!user || !user.userId || !user.isWorker) {
+        throw new Error("Only workers can add stations");
       }
 
       const stationData = {
@@ -280,27 +265,8 @@ const MapPage = () => {
       setIsBookingModalOpen(false);
 
       fetchStations();
-      fetchUserReservations();
     } catch (err) {
       alert(`Booking error: ${err.message}`);
-    }
-  };
-
-  const cancelReservation = async (reservationId) => {
-    try {
-      const response = await fetch(`backend/reservation/${reservationId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to cancel reservation");
-      }
-
-      alert("Reservation cancelled successfully");
-      fetchUserReservations();
-      fetchStations();
-    } catch (err) {
-      alert(`Error cancelling reservation: ${err.message}`);
     }
   };
 
@@ -312,7 +278,9 @@ const MapPage = () => {
 
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Interactive Map</h1>
-          <Button onClick={() => setIsModalOpen(true)}>Add New Station</Button>
+          {user?.isWorker && (
+              <Button onClick={() => setIsModalOpen(true)}>Add New Station</Button>
+          )}
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -507,45 +475,6 @@ const MapPage = () => {
               </Marker>
           ))}
         </Map>
-
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Your Reservations</h2>
-          {userReservations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {userReservations.map((reservation) => (
-                    <div key={reservation.id} className="border rounded-lg p-4">
-                      <h3 className="font-bold">{reservation.station?.name || 'Unknown Station'}</h3>
-                      <p>Start: {new Date(reservation.startTime).toLocaleString()}</p>
-                      <p>End: {new Date(reservation.endTime).toLocaleString()}</p>
-                      <p>Status: {reservation.paid ? 'Paid' : 'Pending Payment'}</p>
-                      <div className="flex space-x-2 mt-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                              if (reservation.station) {
-                                setSelectedLocation([
-                                  parseFloat(reservation.station.latitude),
-                                  parseFloat(reservation.station.longitude)
-                                ]);
-                              }
-                            }}
-                        >
-                          View on Map
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={() => cancelReservation(reservation.id)}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                ))}
-              </div>
-          ) : (
-              <p>You have no active reservations.</p>
-          )}
-        </div>
       </div>
   );
 };
