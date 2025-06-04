@@ -70,6 +70,17 @@ const BookingPage = () => {
     }));
   };
 
+  const handleExpiryChange = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 2) {
+      value = value.slice(0, 2) + '/' + value.slice(2, 4);
+    }
+    setPaymentData(prev => ({
+      ...prev,
+      expiryDate: value
+    }));
+  };
+
   const handleBookingInput = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -169,15 +180,39 @@ const BookingPage = () => {
     setLoading(true);
     setError("");
     setMessage("");
-  
+
+    // Validate expiry date format
+    if (!/^\d{2}\/\d{2}$/.test(paymentData.expiryDate)) {
+      setError("Please enter a valid expiry date in MM/YY format");
+      setLoading(false);
+      return;
+    }
+
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user?.userId) throw new Error("User not authenticated");
-  
+
       if (!selectedBooking?.station) throw new Error("Station not found");
       
       const pricePerKWh = selectedBooking.station.pricePerKWh || 0.15;
-  
+      const amount = calculateCost();
+
+      // First process payment
+      const paymentResponse = await fetch(`/backend/driver/payments/${user.userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...paymentData,
+          amount,
+          bookingId
+        }),
+      });
+
+      if (!paymentResponse.ok) {
+        throw new Error("Payment failed");
+      }
+
+      // Only if payment succeeds, create consumption record
       const consumptionPayload = {
         station: { id: selectedBooking.station.id },
         startTime: selectedBooking.startTime,
@@ -185,35 +220,17 @@ const BookingPage = () => {
         energyUsed: parseFloat(consumptionData.energyUsed),
         pricePerKWh: pricePerKWh
       };
-  
+
       const consumptionResponse = await fetch("/backend/consumption", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(consumptionPayload),
       });
-  
+
       if (!consumptionResponse.ok) {
-        throw new Error("Failed to record consumption");
+        throw new Error("Payment succeeded but failed to record consumption");
       }
-  
-      const consumption = await consumptionResponse.json();
-      const amount = calculateCost();
-  
-      const paymentResponse = await fetch(`/backend/driver/payments/${user.userId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...paymentData,
-          amount,
-          bookingId,
-          consumptionId: consumption.id
-        }),
-      });
-  
-      if (!paymentResponse.ok) {
-        throw new Error("Payment failed");
-      }
-  
+
       setMessage("Payment and consumption recorded successfully");
       setShowPaymentForm(false);
       setSelectedBookingId(null);
@@ -222,7 +239,7 @@ const BookingPage = () => {
         pricePerKWh: pricePerKWh
       });
       await fetchBookings();
-  
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -354,8 +371,9 @@ const BookingPage = () => {
               name="expiryDate"
               placeholder="MM/YY"
               value={paymentData.expiryDate}
-              onChange={handleInputChange}
+              onChange={handleExpiryChange}
               className="w-full mb-2 p-2 border rounded"
+              maxLength="5"
               required
             />
             <input
