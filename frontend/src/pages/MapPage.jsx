@@ -152,7 +152,7 @@ const MapPage = () => {
   const filteredStations = useMemo(() => {
     if (!selectedChargerType) return stations;
     return stations.filter((station) =>
-        station.chargerTypes?.includes(selectedChargerType.value)
+      station.chargerTypes?.includes(selectedChargerType.value)
     );
   }, [stations, selectedChargerType]);
 
@@ -170,13 +170,14 @@ const MapPage = () => {
   };
 
   const stationOptions = useMemo(
-      () =>
-          filteredStations.map((station) => ({
-            value: station.id,
-            label: `${station.name} (${station.address})`,
-            coords: [parseFloat(station.latitude), parseFloat(station.longitude)],
-          })),
-      [filteredStations]
+    () =>
+      filteredStations.map((station) => ({
+        id: `select-${station.name.replace(/\s+/g, "-").toLowerCase()}`,
+        value: station.id,
+        label: `${station.name} (${station.address})`,
+        coords: [parseFloat(station.latitude), parseFloat(station.longitude)],
+      })),
+    [filteredStations]
   );
 
   const handleBookStation = (station) => {
@@ -227,9 +228,9 @@ const MapPage = () => {
 
     try {
       const isAvailable = await checkStationAvailability(
-          stationToBook.id,
-          bookingStart,
-          bookingEnd
+        stationToBook.id,
+        bookingStart,
+        bookingEnd
       );
 
       if (!isAvailable) {
@@ -272,183 +273,192 @@ const MapPage = () => {
   };
 
   return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="home-page">
-          <h1>Welcome to Electro</h1>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="home-page">
+        <h1>Welcome to Electro</h1>
+      </div>
 
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Interactive Map</h1>
-          {user?.isWorker && (
-              <Button onClick={() => setIsModalOpen(true)}>Add New Station</Button>
-          )}
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Interactive Map</h1>
+        {user?.isWorker && (
+          <Button id="add-station-btn" onClick={() => setIsModalOpen(true)}>Add New Station</Button>
+        )}
+      </div>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="w-full md:w-1/3 relative z-20">
-            <Dropdown
-                options={stationOptions}
-                onSelect={handleLocationChange}
-                placeholder="Select a station"
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="w-full md:w-1/3 relative z-20">
+          <Dropdown
+            id="stations-dropdown"
+            options={stationOptions}
+            onSelect={handleLocationChange}
+            placeholder="Select a station"
+          />
+        </div>
+        <div className="w-full md:w-1/3 relative z-20">
+          <Select
+            options={chargerTypes}
+            placeholder="Filter by charger type"
+            isClearable
+            onChange={(selected) => setSelectedChargerType(selected)}
+            value={selectedChargerType}
+          />
+        </div>
+      </div>
+
+      {loading && <p className="text-center">Loading charging stations...</p>}
+      {error && <p className="text-center text-red-500">Error: {error}</p>}
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Add New Charging Station"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            id="station-name"
+            label="Station Name"
+            name="name"
+            value={newStation.name}
+            onChange={handleInputChange}
+            required
+          />
+
+          <Input
+            label="Address"
+            id="station-address"
+            name="address"
+            value={newStation.address}
+            onChange={handleInputChange}
+            required
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              id="station-latitude"
+              label="Latitude"
+              name="latitude"
+              type="text"
+              value={newStation.latitude}
+              onChange={handleInputChange}
+              required
+            />
+
+            <Input
+              id="station-longitude"
+              label="Longitude"
+              name="longitude"
+              type="text"
+              value={newStation.longitude}
+              onChange={handleInputChange}
+              required
             />
           </div>
-          <div className="w-full md:w-1/3 relative z-20">
-            <Select
-                options={chargerTypes}
-                placeholder="Filter by charger type"
-                isClearable
-                onChange={(selected) => setSelectedChargerType(selected)}
-                value={selectedChargerType}
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              id="station-ocupation"
+              label="Max Capacity"
+              name="maxOccupation"
+              type="number"
+              value={newStation.maxOccupation}
+              onChange={handleInputChange}
+              required
+              min="1"
+            />
+
+            <Input
+              id="station-current"
+              label="Current Occupancy"
+              name="currentOccupation"
+              type="number"
+              value={newStation.currentOccupation}
+              onChange={handleInputChange}
+              required
+              min="0"
+              max={newStation.maxOccupation}
             />
           </div>
-        </div>
 
-        {loading && <p className="text-center">Loading charging stations...</p>}
-        {error && <p className="text-center text-red-500">Error: {error}</p>}
+          <Input
+            id="charger-price"
+            label="Price per kWh (€)"
+            name="pricePerKWh"
+            type="number"
+            step="0.01"
+            value={newStation.pricePerKWh}
+            onChange={handleInputChange}
+            min="0"
+          />
 
-        <Modal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            title="Add New Charging Station"
-        >
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-                label="Station Name"
-                name="name"
-                value={newStation.name}
-                onChange={handleInputChange}
+          <Select
+            id="charger-type-select"
+            label="Charger Types"
+            options={chargerTypes}
+            isMulti
+            onChange={handleChargerTypeChange}
+            value={chargerTypes.filter((option) =>
+              newStation.chargerTypes.includes(option.value)
+            )}
+          />
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" id="submit-station-btn">Add Station</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        title={`Book Station: ${stationToBook?.name || ""}`}
+      >
+        <form onSubmit={handleBookingSubmit} className="space-y-4">
+          <p>Address: {stationToBook?.address}</p>
+          <p>Available: {stationToBook?.maxOccupation - stationToBook?.currentOccupation}/{stationToBook?.maxOccupation}</p>
+          <p>Price: €{stationToBook?.pricePerKWh?.toFixed(2) || '0.00'} per kWh</p>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Start Time</label>
+              <Input
+                type="datetime-local"
+                value={bookingStart}
+                onChange={(e) => setBookingStart(e.target.value)}
                 required
-            />
-
-            <Input
-                label="Address"
-                name="address"
-                value={newStation.address}
-                onChange={handleInputChange}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">End Time</label>
+              <Input
+                type="datetime-local"
+                value={bookingEnd}
+                onChange={(e) => setBookingEnd(e.target.value)}
                 required
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                  label="Latitude"
-                  name="latitude"
-                  type="text"
-                  value={newStation.latitude}
-                  onChange={handleInputChange}
-                  required
-              />
-
-              <Input
-                  label="Longitude"
-                  name="longitude"
-                  type="text"
-                  value={newStation.longitude}
-                  onChange={handleInputChange}
-                  required
+                min={bookingStart || new Date().toISOString().slice(0, 16)}
               />
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                  label="Max Capacity"
-                  name="maxOccupation"
-                  type="number"
-                  value={newStation.maxOccupation}
-                  onChange={handleInputChange}
-                  required
-                  min="1"
-              />
-
-              <Input
-                  label="Current Occupancy"
-                  name="currentOccupation"
-                  type="number"
-                  value={newStation.currentOccupation}
-                  onChange={handleInputChange}
-                  required
-                  min="0"
-                  max={newStation.maxOccupation}
-              />
-            </div>
-
-            <Input
-                label="Price per kWh (€)"
-                name="pricePerKWh"
-                type="number"
-                step="0.01"
-                value={newStation.pricePerKWh}
-                onChange={handleInputChange}
-                min="0"
-            />
-
-            <Select
-                label="Charger Types"
-                options={chargerTypes}
-                isMulti
-                onChange={handleChargerTypeChange}
-                value={chargerTypes.filter((option) =>
-                    newStation.chargerTypes.includes(option.value)
-                )}
-            />
-
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Add Station</Button>
-            </div>
-          </form>
-        </Modal>
-
-        <Modal
-            isOpen={isBookingModalOpen}
-            onClose={() => setIsBookingModalOpen(false)}
-            title={`Book Station: ${stationToBook?.name || ""}`}
-        >
-          <form onSubmit={handleBookingSubmit} className="space-y-4">
-            <p>Address: {stationToBook?.address}</p>
-            <p>Available: {stationToBook?.maxOccupation - stationToBook?.currentOccupation}/{stationToBook?.maxOccupation}</p>
-            <p>Price: €{stationToBook?.pricePerKWh?.toFixed(2) || '0.00'} per kWh</p>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Start Time</label>
-                <Input
-                    type="datetime-local"
-                    value={bookingStart}
-                    onChange={(e) => setBookingStart(e.target.value)}
-                    required
-                    min={new Date().toISOString().slice(0, 16)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">End Time</label>
-                <Input
-                    type="datetime-local"
-                    value={bookingEnd}
-                    onChange={(e) => setBookingEnd(e.target.value)}
-                    required
-                    min={bookingStart || new Date().toISOString().slice(0, 16)}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsBookingModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Confirm Booking</Button>
-            </div>
-          </form>
-        </Modal>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsBookingModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">Confirm Booking</Button>
+          </div>
+        </form>
+      </Modal>
 
         <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
           {filteredStations.map((station) => (

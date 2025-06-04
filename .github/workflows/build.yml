@@ -1,41 +1,70 @@
 name: SonarQube
+
 on:
   push:
     branches:
       - main
       - dev
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - dev
+    types:
+      - opened
+      - synchronize
+      - reopened
+
 jobs:
   sonarqube:
-    name: Build and analyze
+    name: Build, Test & SonarQube
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  
+          fetch-depth: 0
+
+      - name: Verify Docker is available
+        run: |
+          echo "Running 'docker version' to confirm Docker is installed:"
+          docker version
+          echo "Running 'docker ps' to confirm Docker daemon is healthy:"
+          docker ps
+      - name: Install docker-compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: 21
-          distribution: 'temurin' 
+
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Build and analyze
+
+      - name: Build, run tests & SonarQube analysis
+        working-directory: ./backend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: ./backend
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=TQS-03_deti-tqs-03
+        run: |
+          mvn --batch-mode clean verify \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=TQS-03_deti-tqs-03
+
       - name: Import results to Xray
         uses: mikepenz/xray-action@v3
         with:
