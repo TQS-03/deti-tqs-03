@@ -463,6 +463,7 @@ const MapPage = () => {
         <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
           {filteredStations.map((station) => (
               <Marker
+                  id={`marker-${station.name.replace(/\s+/g, "-").toLowerCase()}`}
                   key={station.id}
                   position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
                   ref={(ref) => {
@@ -470,7 +471,10 @@ const MapPage = () => {
                   }}
               >
                 <Popup>
-                  <div className="station-popup space-y-2">
+                  <div
+                      id={`popup-${station.name.replace(/\s+/g, "-").toLowerCase()}`}
+                      className="station-popup space-y-2"
+                  >
                     <h3 className="font-bold">{station.name}</h3>
                     <p>{station.address}</p>
                     <p>
