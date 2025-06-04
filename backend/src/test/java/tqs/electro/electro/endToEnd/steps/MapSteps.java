@@ -36,11 +36,7 @@ public class MapSteps {
     // Build the remote URL, e.g. http://localhost:32768/wd/hub
     URL remoteUrl = new URL("http://" + seleniumHost + ":" + seleniumPort + "/wd/hub");
 
-    // Configure FirefoxOptions (e.g. headless, if you want)
     FirefoxOptions options = new FirefoxOptions();
-    // options.setHeadless(true); // optional, since the selenium/standalone-firefox
-    // image is headless by default
-
     driver = new RemoteWebDriver(remoteUrl, options);
     wait = new WebDriverWait(driver, Duration.ofSeconds(10));
   }
@@ -54,7 +50,7 @@ public class MapSteps {
 
   @Given("I am on the home page")
   public void iAmOnTheHomePage() throws InterruptedException {
-    driver.get("http://proxy:80/");
+    driver.get("http://proxy_test:80/");
     wait.until(ExpectedConditions.visibilityOfElementLocated(
         By.id("nav-interactive-map")));
   }
@@ -68,9 +64,6 @@ public class MapSteps {
 
   @Then("I should be on the Map page")
   public void iShouldBeOnTheMapPage() {
-    // After clicking “Map,” you should land at /map on the same frontend host/port:
-    String host = TestcontainersConfiguration.compose.getServiceHost("frontend", 3000);
-    Integer port = TestcontainersConfiguration.compose.getServicePort("frontend", 3000);
     wait.until(ExpectedConditions.urlContains("/map"));
     String currentUrl = driver.getCurrentUrl();
     Assertions.assertTrue(currentUrl.contains("/map"),
