@@ -54,6 +54,7 @@ const MapPage = () => {
   const [stationToBook, setStationToBook] = useState(null);
   const [bookingStart, setBookingStart] = useState("");
   const [bookingEnd, setBookingEnd] = useState("");
+  const [userReservations, setUserReservations] = useState([]);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -171,6 +172,7 @@ const MapPage = () => {
   const stationOptions = useMemo(
     () =>
       filteredStations.map((station) => ({
+        id: `select-${station.name.replace(/\s+/g, "-").toLowerCase()}`,
         value: station.id,
         label: `${station.name} (${station.address})`,
         coords: [parseFloat(station.latitude), parseFloat(station.longitude)],
@@ -278,7 +280,9 @@ const MapPage = () => {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Interactive Map</h1>
-        <Button onClick={() => setIsModalOpen(true)}>Add New Station</Button>
+        {user?.isWorker && (
+          <Button id="add-station-btn" onClick={() => setIsModalOpen(true)}>Add New Station</Button>
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -290,12 +294,14 @@ const MapPage = () => {
             placeholder="Select a station"
           />
         </div>
-
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Interactive Map</h1>
-          {user?.isWorker && (
-              <Button onClick={() => setIsModalOpen(true)}>Add New Station</Button>
-          )}
+        <div className="w-full md:w-1/3 relative z-20">
+          <Select
+            options={chargerTypes}
+            placeholder="Filter by charger type"
+            isClearable
+            onChange={(selected) => setSelectedChargerType(selected)}
+            value={selectedChargerType}
+          />
         </div>
       </div>
 
@@ -465,7 +471,7 @@ const MapPage = () => {
             }}
           >
             <Popup>
-              <div className="station-popup space-y-2" id={`popup-${station.name.replace(/\s+/g, "-").toLowerCase()}`}>
+              <div id={`popup-${station.name.replace(/\s+/g, "-").toLowerCase()}`} className="station-popup space-y-2">
                 <h3 className="font-bold">{station.name}</h3>
                 <p>{station.address}</p>
                 <p>
@@ -477,58 +483,11 @@ const MapPage = () => {
                   Book This Station
                 </Button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">End Time</label>
-                <Input
-                    type="datetime-local"
-                    value={bookingEnd}
-                    onChange={(e) => setBookingEnd(e.target.value)}
-                    required
-                    min={bookingStart || new Date().toISOString().slice(0, 16)}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsBookingModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Confirm Booking</Button>
-            </div>
-          </form>
-        </Modal>
-
-        <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
-          {filteredStations.map((station) => (
-              <Marker
-                  key={station.id}
-                  position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
-                  ref={(ref) => {
-                    markerRefs.current[station.id] = ref;
-                  }}
-              >
-                <Popup>
-                  <div className="station-popup space-y-2">
-                    <h3 className="font-bold">{station.name}</h3>
-                    <p>{station.address}</p>
-                    <p>
-                      Available: {station.maxOccupation - station.currentOccupation}/{station.maxOccupation}
-                    </p>
-                    <p>Price: €{station.pricePerKWh?.toFixed(2) || '0.00'} per kWh</p>
-                    <p>Charger Types: {station.chargerTypes?.join(", ") || "N/A"}</p>
-                    <Button onClick={() => handleBookStation(station)}>
-                      Book This Station
-                    </Button>
-                  </div>
-                </Popup>
-              </Marker>
-          ))}
-        </Map>
-      </div>
+            </Popup>
+          </Marker>
+        ))}
+      </Map>
+    </div>
   );
 };
 

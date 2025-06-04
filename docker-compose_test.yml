@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  db_test:
+  dbtest:
     image: postgres:13
     environment:
       POSTGRES_DB: ElectroTest
@@ -12,12 +12,12 @@ services:
     volumes:
       - postgres_data_test:/var/lib/postgresql/data
 
-  backend_test:
+  backendtest:
     build: ./backend/
     environment:
       SPRING_APPLICATION_JSON: '{
           "spring.application.name": "backend",
-          "spring.datasource.url": "jdbc:postgresql://db_test:5432/ElectroTest",
+          "spring.datasource.url": "jdbc:postgresql://dbtest:5432/ElectroTest",
           "spring.datasource.username": "${DB_USER}",
           "spring.datasource.password": "${DB_PASS}",
           "spring.jpa.hibernate.ddl-auto": "update",
@@ -30,9 +30,9 @@ services:
     ports:
       - "8081:8080"
     depends_on:
-      - db_test
+      - dbtest
 
-  frontend_test:
+  frontendtest:
     build: ./frontend/
     ports:
       - "3333:3000"  
@@ -43,12 +43,12 @@ services:
       - ./frontend:/frontend
       - /frontend/node_modules
     depends_on:
-      - backend_test
+      - backendtest
 
-  proxy_test:
+  proxytest:
     depends_on:
-      - backend_test
-      - frontend_test
+      - backendtest
+      - frontendtest
     image: nginx:1.27-alpine
     volumes:
       - "./nginx_test.conf:/etc/nginx/nginx.conf:ro"
@@ -60,8 +60,8 @@ services:
     ports:
       - "4444:4444"
     depends_on:
-      - backend_test
-      - frontend_test
+      - backendtest
+      - frontendtest
 
 volumes:
   postgres_data_test:

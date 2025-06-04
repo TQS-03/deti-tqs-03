@@ -17,10 +17,10 @@ public class TestcontainersConfiguration {
       .withEnv(Map.of(
           "DB_USER", "dev",
           "DB_PASS", "dev"))
-      .withExposedService("db_test", 5432)
-      .withExposedService("backend_test", 8080, Wait.forHttp("/actuator/health").forStatusCode(200))
-      .withExposedService("frontend_test", 3000)
-      .withExposedService("proxy_test", 8000, Wait.forHttp("/").forStatusCode(200))
+      .withExposedService("dbtest", 5432)
+      .withExposedService("backendtest", 8080, Wait.forHttp("/actuator/health").forStatusCode(200))
+      .withExposedService("frontendtest", 3000)
+      .withExposedService("proxytest", 8000, Wait.forHttp("/").forStatusCode(200))
       .withExposedService("selenium", 4444, Wait.forHttp("/wd/hub/status").forStatusCode(200))
       .withLocalCompose(true);
 
@@ -30,8 +30,8 @@ public class TestcontainersConfiguration {
 
   @DynamicPropertySource
   static void overrideProps(DynamicPropertyRegistry registry) {
-    String host = compose.getServiceHost("db_test", 5432);
-    Integer port = compose.getServicePort("db_test", 5432);
+    String host = compose.getServiceHost("dbtest", 5432);
+    Integer port = compose.getServicePort("dbtest", 5432);
 
     registry.add("spring.datasource.url", () -> "jdbc:postgresql://" + host + ":" + port + "/ElectroTest");
     registry.add("spring.datasource.username", () -> "dev");
