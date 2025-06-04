@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { Link } from "react-router-dom";
 import Map from "../components/Map/Map";
 import { Dropdown } from "../components/ui/dropdown/Dropdown";
 import { Button } from "../components/ui/Button.jsx";
@@ -26,7 +27,7 @@ const chargerTypes = [
   { value: "Type 2", label: "Type 2" },
   { value: "CCS", label: "CCS" },
   { value: "CHAdeMO", label: "CHAdeMO" },
-  { value: "TESLA", label: "Tesla" },
+  { value: "Tesla", label: "Tesla" },
   { value: "Schuko", label: "Schuko" },
 ];
 
@@ -54,7 +55,6 @@ const MapPage = () => {
   const [stationToBook, setStationToBook] = useState(null);
   const [bookingStart, setBookingStart] = useState("");
   const [bookingEnd, setBookingEnd] = useState("");
-  const [userReservations, setUserReservations] = useState([]);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -460,34 +460,45 @@ const MapPage = () => {
         </form>
       </Modal>
 
-      <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
-        {filteredStations.map((station) => (
-          <Marker
-            id={`marker-${station.name.replace(/\s+/g, "-").toLowerCase()}`}
-            key={station.id}
-            position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
-            ref={(ref) => {
-              markerRefs.current[station.id] = ref;
-            }}
-          >
-            <Popup>
-              <div id={`popup-${station.name.replace(/\s+/g, "-").toLowerCase()}`} className="station-popup space-y-2">
-                <h3 className="font-bold">{station.name}</h3>
-                <p>{station.address}</p>
-                <p>
-                  Available: {station.maxOccupation - station.currentOccupation}/{station.maxOccupation}
-                </p>
-                <p>Price: €{station.pricePerKWh?.toFixed(2) || '0.00'} per kWh</p>
-                <p>Charger Types: {station.chargerTypes?.join(", ") || "N/A"}</p>
-                <Button onClick={() => handleBookStation(station)}>
-                  Book This Station
-                </Button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </Map>
-    </div>
+        <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
+          {filteredStations.map((station) => (
+              <Marker
+                  id={`marker-${station.name.replace(/\s+/g, "-").toLowerCase()}`}
+                  key={station.id}
+                  position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
+                  ref={(ref) => {
+                    markerRefs.current[station.id] = ref;
+                  }}
+              >
+                <Popup>
+                  <div
+                      id={`popup-${station.name.replace(/\s+/g, "-").toLowerCase()}`}
+                      className="station-popup space-y-2"
+                  >
+                    <h3 className="font-bold">{station.name}</h3>
+                    <p>{station.address}</p>
+                    <p>
+                      Available: {station.maxOccupation - station.currentOccupation}/{station.maxOccupation}
+                    </p>
+                    <p>Price: €{station.pricePerKWh?.toFixed(2) || '0.00'} per kWh</p>
+                    <p>Charger Types: {station.chargerTypes?.join(", ") || "N/A"}</p>
+                    <div className="flex flex-col gap-2">
+                      <Button onClick={() => handleBookStation(station)}>
+                        Book This Station
+                      </Button>
+                      <Link
+                          to={`/consumption/${station.id}`}
+                          className="font-medium text-blue-600 hover:text-blue-500 text-center"
+                      >
+                        View Consumption
+                      </Link>
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
+          ))}
+        </Map>
+      </div>
   );
 };
 
