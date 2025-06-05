@@ -16,5 +16,5 @@ This contains a small description of the project.
 ## Links
 
 - [Project Backlog](https://deti-tqs-03.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
-- [API Documentation](https://deti-tqs-03.ua.pt:8080/swagger-ui/index.html)
-- [Static Analysis Dashboard](https://deti-tqs-03.ua.pt:3001)
+- [API Documentation](http://deti-tqs-03.ua.pt:8080/swagger-ui/index.html)
+- [Static Analysis Dashboard](http://deti-tqs-03.ua.pt:3001)
