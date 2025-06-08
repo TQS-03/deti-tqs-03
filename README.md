@@ -25,4 +25,5 @@ This contains a small description of the project.
 - changed payment tests to account for the change stated above
 - Updated Reservation logic to change number of station's availability
 - changed Reservation tests to reflect the above changes
-
+- Added one more frontend test
+- Added more load tests

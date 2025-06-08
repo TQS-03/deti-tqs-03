@@ -43,7 +43,6 @@ public class ReservationService {
             return reservationRepository.save(reservation);
         } catch (Exception e) {
             logger.warning(e.getMessage());
-            e.printStackTrace();
         }
         return null;
     }
