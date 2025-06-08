@@ -30,6 +30,7 @@ class ReservationServiceTest {
     @Mock
     private ReservationRepository reservationRepository;
 
+
     @Test
     void testGetAllReservations() {
         Reservation r1 = new Reservation();
@@ -63,12 +64,35 @@ class ReservationServiceTest {
     }
 
     @Test
-    void testAddReservation() {
+    void testAddReservation_stationFull_returnsNull() {
+        Station station = new Station();
+        station.setCurrentOccupation(5);
+        station.setMaxOccupation(5);  // Station is at max capacity
+
         Reservation reservation = new Reservation();
+        reservation.setStation(station);
+
+        Reservation result = reservationService.addReservation(reservation);
+
+        assertNull(result, "Reservation should be null when station is full");
+        // Also verify occupation is incremented but reservation not saved (optional)
+    }
+
+    @Test
+    void testAddReservation_updatesStationOccupation() {
+        Station station = new Station();
+        station.setCurrentOccupation(1);
+        station.setMaxOccupation(5);
+
+        Reservation reservation = new Reservation();
+        reservation.setStation(station);
+
         when(reservationRepository.save(reservation)).thenReturn(reservation);
 
         Reservation saved = reservationService.addReservation(reservation);
+
         assertEquals(reservation, saved);
+        assertEquals(2, station.getCurrentOccupation());
         verify(reservationRepository).save(reservation);
     }
 
@@ -110,31 +134,43 @@ class ReservationServiceTest {
     }
 
     @Test
-    void testUpdateReservationPaidStatus() {
+    void testUpdateReservationPaidStatus_decrementsOccupation() {
         UUID id = UUID.randomUUID();
+        Station station = new Station();
+        station.setCurrentOccupation(2);
+
         Reservation existing = new Reservation();
         existing.setId(id);
         existing.setPaid(false);
+        existing.setStation(station);
 
         when(reservationRepository.findById(id)).thenReturn(Optional.of(existing));
         when(reservationRepository.save(any())).thenReturn(existing);
 
         Optional<Reservation> updated = reservationService.updateReservationPaidStatus(id, true);
+
         assertTrue(updated.isPresent());
         assertTrue(updated.get().isPaid());
+        assertEquals(1, station.getCurrentOccupation()); // Occupation should decrement
         verify(reservationRepository).save(existing);
     }
 
     @Test
-    void testDeleteReservationById() {
+    void testDeleteReservationById_updatesStationOccupation() {
         UUID id = UUID.randomUUID();
+        Station station = new Station();
+        station.setCurrentOccupation(2);
+
         Reservation reservation = new Reservation();
         reservation.setId(id);
-        when(reservationRepository.save(any())).thenReturn(reservation);
+        reservation.setStation(station);
 
-        reservationService.addReservation(reservation);
+        when(reservationRepository.findById(id)).thenReturn(Optional.of(reservation));
+
         reservationService.deleteReservation(id);
-        assertTrue(reservationService.getAllReservations().isEmpty());
+
+        assertEquals(1, station.getCurrentOccupation()); // Should decrement
+        verify(reservationRepository).save(reservation);
         verify(reservationRepository).deleteById(id);
     }
 

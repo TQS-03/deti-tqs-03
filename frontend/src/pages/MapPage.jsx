@@ -428,6 +428,7 @@ const MapPage = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700">Start Time</label>
               <Input
+                id="booking-start"
                 type="datetime-local"
                 value={bookingStart}
                 onChange={(e) => setBookingStart(e.target.value)}
@@ -438,6 +439,7 @@ const MapPage = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700">End Time</label>
               <Input
+                id="booking-end"
                 type="datetime-local"
                 value={bookingEnd}
                 onChange={(e) => setBookingEnd(e.target.value)}
@@ -455,50 +457,50 @@ const MapPage = () => {
             >
               Cancel
             </Button>
-            <Button type="submit">Confirm Booking</Button>
+            <Button id="confirm-booking" type="submit">Confirm Booking</Button>
           </div>
         </form>
       </Modal>
 
-        <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
-          {filteredStations.map((station) => (
-              <Marker
-                  id={`marker-${station.name.replace(/\s+/g, "-").toLowerCase()}`}
-                  key={station.id}
-                  position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
-                  ref={(ref) => {
-                    markerRefs.current[station.id] = ref;
-                  }}
+      <Map center={selectedLocation} className="h-[calc(100vh-200px)] relative z-10">
+        {filteredStations.map((station) => (
+          <Marker
+            id={`marker-${station.name.replace(/\s+/g, "-").toLowerCase()}`}
+            key={station.id}
+            position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
+            ref={(ref) => {
+              markerRefs.current[station.id] = ref;
+            }}
+          >
+            <Popup>
+              <div
+                id={`popup-${station.name.replace(/\s+/g, "-").toLowerCase()}`}
+                className="station-popup space-y-2"
               >
-                <Popup>
-                  <div
-                      id={`popup-${station.name.replace(/\s+/g, "-").toLowerCase()}`}
-                      className="station-popup space-y-2"
+                <h3 className="font-bold">{station.name}</h3>
+                <p>{station.address}</p>
+                <p>
+                  Available: {station.maxOccupation - station.currentOccupation}/{station.maxOccupation}
+                </p>
+                <p>Price: €{station.pricePerKWh?.toFixed(2) || '0.00'} per kWh</p>
+                <p>Charger Types: {station.chargerTypes?.join(", ") || "N/A"}</p>
+                <div className="flex flex-col gap-2">
+                  <Button id="book-station-btn" onClick={() => handleBookStation(station)}>
+                    Book This Station
+                  </Button>
+                  <Link
+                    to={`/consumption/${station.id}`}
+                    className="font-medium text-blue-600 hover:text-blue-500 text-center"
                   >
-                    <h3 className="font-bold">{station.name}</h3>
-                    <p>{station.address}</p>
-                    <p>
-                      Available: {station.maxOccupation - station.currentOccupation}/{station.maxOccupation}
-                    </p>
-                    <p>Price: €{station.pricePerKWh?.toFixed(2) || '0.00'} per kWh</p>
-                    <p>Charger Types: {station.chargerTypes?.join(", ") || "N/A"}</p>
-                    <div className="flex flex-col gap-2">
-                      <Button onClick={() => handleBookStation(station)}>
-                        Book This Station
-                      </Button>
-                      <Link
-                          to={`/consumption/${station.id}`}
-                          className="font-medium text-blue-600 hover:text-blue-500 text-center"
-                      >
-                        View Consumption
-                      </Link>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-          ))}
-        </Map>
-      </div>
+                    View Consumption
+                  </Link>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </Map>
+    </div>
   );
 };
 

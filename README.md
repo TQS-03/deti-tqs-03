@@ -18,3 +18,12 @@ This contains a small description of the project.
 - [Project Backlog](https://deti-tqs-03.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
 - [API Documentation](http://deti-tqs-03.ua.pt:8080/swagger-ui/index.html)
 - [Static Analysis Dashboard](http://deti-tqs-03.ua.pt:3001)
+
+## Alterações após a apresentação
+
+- Updated payment logic to set reservation as paid
+- changed payment tests to account for the change stated above
+- Updated Reservation logic to change number of station's availability
+- changed Reservation tests to reflect the above changes
+- Added one more frontend test
+- Added more load tests

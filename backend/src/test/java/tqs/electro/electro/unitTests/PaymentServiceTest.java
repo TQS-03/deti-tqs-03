@@ -15,6 +15,7 @@ import tqs.electro.electro.repositories.PaymentCardRepository;
 import tqs.electro.electro.repositories.PaymentRecordRepository;
 import tqs.electro.electro.repositories.PersonRepository;
 import tqs.electro.electro.services.PaymentService;
+import tqs.electro.electro.services.ReservationService;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,14 +39,17 @@ public class PaymentServiceTest {
     @Mock
     private PaymentCardRepository paymentCardRepository;
 
+    @Mock
+    private ReservationService reservationService;
 
     @Test
     public void testPayUserNotFound() {
         UUID userId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
         when(personRepository.findById(userId)).thenReturn(Optional.empty());
 
         PaymentCardDTO dto = new PaymentCardDTO("4242424242424242", "12/30", "123", 50.0, false);
-        PaymentResponseDTO response = paymentService.pay(userId, dto);
+        PaymentResponseDTO response = paymentService.pay(userId, reservationId, dto);
 
         assertEquals(404, response.getStatusCode());
         assertEquals("USER NOT FOUND", response.getPaymentStatus());
@@ -54,11 +58,12 @@ public class PaymentServiceTest {
     @Test
     public void testPayCardInvalid() {
         UUID userId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
         Person person = new Person();
         when(personRepository.findById(userId)).thenReturn(Optional.of(person));
 
         PaymentCardDTO dto = new PaymentCardDTO("1111222233334444", "12/19", "999", 50.0, false);
-        PaymentResponseDTO response = paymentService.pay(userId, dto);
+        PaymentResponseDTO response = paymentService.pay(userId, reservationId, dto);
 
         assertEquals(400, response.getStatusCode());
         assertEquals("PAYMENT FAILDED", response.getPaymentStatus());
@@ -67,17 +72,19 @@ public class PaymentServiceTest {
     @Test
     public void testPaySuccessAndSaveCard() {
         UUID userId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
         Person person = new Person();
         when(personRepository.findById(userId)).thenReturn(Optional.of(person));
 
         PaymentCardDTO dto = new PaymentCardDTO("4242424242424242", "12/30", "123", 50.0, true);
-        PaymentResponseDTO response = paymentService.pay(userId, dto);
+        PaymentResponseDTO response = paymentService.pay(userId, reservationId, dto);
 
         assertEquals(200, response.getStatusCode());
         assertEquals("SUCCESS", response.getPaymentStatus());
 
         verify(paymentCardRepository, times(1)).save(any());
         verify(paymentRecordRepository, times(1)).save(any());
+        verify(reservationService, times(1)).updateReservationPaidStatus(reservationId, true); // ✅
     }
 
     @Test
@@ -92,9 +99,10 @@ public class PaymentServiceTest {
     @Test
     public void testAutoPayUserNotFound() {
         UUID userId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
         when(personRepository.findById(userId)).thenReturn(Optional.empty());
 
-        PaymentResponseDTO response = paymentService.autoPay(userId, 30.0);
+        PaymentResponseDTO response = paymentService.autoPay(userId, reservationId, 30.0);
 
         assertEquals(404, response.getStatusCode());
         assertEquals("USER NOT FOUND", response.getPaymentStatus());
@@ -104,10 +112,11 @@ public class PaymentServiceTest {
     @Test
     public void testAutoPayNoSavedCard() {
         UUID userId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
         Person person = new Person();
         when(personRepository.findById(userId)).thenReturn(Optional.of(person));
 
-        PaymentResponseDTO response = paymentService.autoPay(userId, 20.0);
+        PaymentResponseDTO response = paymentService.autoPay(userId, reservationId, 20.0);
 
         assertEquals(400, response.getStatusCode());
         assertEquals("NO SAVED CARD", response.getPaymentStatus());
@@ -117,8 +126,8 @@ public class PaymentServiceTest {
     @Test
     public void testAutoPayCardInvalid() {
         UUID userId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
         Person person = new Person();
-        // Saved card with invalid number (fails Luhn)
         PaymentCard invalidCard = new PaymentCard();
         invalidCard.setCardNumber("1234567890123456");
         invalidCard.setExpiryDate("12/30");
@@ -127,7 +136,7 @@ public class PaymentServiceTest {
 
         when(personRepository.findById(userId)).thenReturn(Optional.of(person));
 
-        PaymentResponseDTO response = paymentService.autoPay(userId, 15.0);
+        PaymentResponseDTO response = paymentService.autoPay(userId, reservationId, 15.0);
 
         assertEquals(400, response.getStatusCode());
         assertEquals("AUTO PAYMENT FAILED", response.getPaymentStatus());
@@ -137,8 +146,8 @@ public class PaymentServiceTest {
     @Test
     public void testAutoPaySuccess() {
         UUID userId = UUID.randomUUID();
+        UUID reservationId = UUID.randomUUID();
         Person person = new Person();
-        // Valid test Visa number that passes Luhn: 4242424242424242
         PaymentCard validCard = new PaymentCard();
         validCard.setCardNumber("4242424242424242");
         validCard.setExpiryDate("12/30");
@@ -149,14 +158,14 @@ public class PaymentServiceTest {
         when(paymentRecordRepository.save(any(PaymentRecord.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        PaymentResponseDTO response = paymentService.autoPay(userId, 50.0);
+        PaymentResponseDTO response = paymentService.autoPay(userId, reservationId, 50.0);
 
         assertEquals(200, response.getStatusCode());
         assertEquals("SUCCESS", response.getPaymentStatus());
         assertNotNull(response.getPaymentId());
 
-        // Verify that a PaymentRecord was saved
         verify(paymentRecordRepository, times(1)).save(any(PaymentRecord.class));
+        verify(reservationService, times(1)).updateReservationPaidStatus(reservationId, true);
     }
 
     @Test
@@ -186,7 +195,6 @@ public class PaymentServiceTest {
     public void testHasSavedCardFound() {
         UUID userId = UUID.randomUUID();
         Person person = new Person();
-        // Valid test card number
         String fullNumber = "4242424242424242";
         PaymentCard savedCard = new PaymentCard();
         savedCard.setCardNumber(fullNumber);

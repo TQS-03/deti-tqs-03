@@ -29,7 +29,10 @@ public class PaymentService {
     @Autowired
     private PaymentCardRepository paymentCardRepository;
 
-    public PaymentResponseDTO pay(UUID personId, PaymentCardDTO cardDTO) {
+    @Autowired
+    private ReservationService reservationService;
+
+    public PaymentResponseDTO pay(UUID personId, UUID reservationId, PaymentCardDTO cardDTO) {
         Optional<Person> optionalPerson = personRepository.findById(personId);
 
         if (optionalPerson.isEmpty()) {
@@ -38,14 +41,13 @@ public class PaymentService {
 
         Person person = optionalPerson.get();
 
-        // Mock payment logic
         boolean paymentSuccessful = mockChargeCard(cardDTO);
 
         if (!paymentSuccessful) {
             return new PaymentResponseDTO(null, "PAYMENT FAILDED", 400);
         }
 
-        // Save the card if requested
+
         if (cardDTO.isSaveCard()) {
             PaymentCard newCard = new PaymentCard();
             newCard.setCardNumber(cardDTO.getCardNumber());
@@ -53,7 +55,6 @@ public class PaymentService {
             newCard.setCvv(cardDTO.getCvv());
             newCard.setOwner(person);
 
-            // Set one-to-one on both sides
             person.setPaymentCard(newCard);
 
             paymentCardRepository.save(newCard);
@@ -65,6 +66,8 @@ public class PaymentService {
         PaymentRecord record = new PaymentRecord(paymentId, cardDTO.getAmount(), last4, person);
         paymentRecordRepository.save(record);
 
+        reservationService.updateReservationPaidStatus(reservationId, true);
+
         return new PaymentResponseDTO(paymentId, "SUCCESS", 200);
     }
 
@@ -72,7 +75,7 @@ public class PaymentService {
         return paymentRecordRepository.findByPersonId(personId);
     }
 
-    public PaymentResponseDTO autoPay(UUID personId, double amount) {
+    public PaymentResponseDTO autoPay(UUID personId, UUID reservationId, double amount) {
         Optional<Person> optionalPerson = personRepository.findById(personId);
 
         if (optionalPerson.isEmpty()) {
@@ -103,6 +106,7 @@ public class PaymentService {
         UUID paymentId = UUID.randomUUID();
         String last4 = savedCard.getCardNumber().substring(savedCard.getCardNumber().length() - 4);
         PaymentRecord record = new PaymentRecord(paymentId, amount, last4, person);
+        reservationService.updateReservationPaidStatus(reservationId, true);
         paymentRecordRepository.save(record);
 
         return new PaymentResponseDTO(paymentId, "SUCCESS", 200);

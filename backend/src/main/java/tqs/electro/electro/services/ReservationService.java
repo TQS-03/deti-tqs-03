@@ -2,7 +2,9 @@ package tqs.electro.electro.services;
 
 import org.springframework.stereotype.Service;
 import tqs.electro.electro.entities.Reservation;
+import tqs.electro.electro.entities.Station;
 import tqs.electro.electro.repositories.ReservationRepository;
+import tqs.electro.electro.repositories.StationRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,6 +35,11 @@ public class ReservationService {
 
     public Reservation addReservation(Reservation reservation) {
         try {
+            Station station = reservation.getStation();
+            station.setCurrentOccupation(station.getCurrentOccupation() + 1);
+            if(station.getCurrentOccupation() > station.getMaxOccupation()) {
+                return null;
+            }
             return reservationRepository.save(reservation);
         } catch (Exception e) {
             logger.warning(e.getMessage());
@@ -53,6 +60,8 @@ public class ReservationService {
     public Optional<Reservation> updateReservationPaidStatus(UUID id, boolean paid) {
         return reservationRepository.findById(id).map(existing -> {
             existing.setPaid(paid);
+            Station savedStation = existing.getStation();
+            savedStation.setCurrentOccupation(savedStation.getCurrentOccupation() - 1);
             return reservationRepository.save(existing);
         });
     }
@@ -68,6 +77,11 @@ public class ReservationService {
     }
 
     public void deleteReservation(UUID id) {
+        reservationRepository.findById(id).ifPresent(reservation -> {
+            Station station = reservation.getStation();
+            station.setCurrentOccupation(station.getCurrentOccupation() - 1);
+            reservationRepository.save(reservation);
+        });
         reservationRepository.deleteById(id);
     }
 
