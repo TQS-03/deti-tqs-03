@@ -30,7 +30,7 @@ Feature: Add and select a new charging station on the map
     Then I should be on the Map page
 
 
-    When I click the "Add New Station" button
+    When I click the "Add" button
     And I fill in the station form with:
       | name             | Test Station          |
       | address          | 123 Selenium Way      |

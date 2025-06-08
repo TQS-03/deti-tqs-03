@@ -84,7 +84,7 @@ const BookingPage = () => {
   const handleBookingInput = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     if (name === "stationId") {
       const selectedStation = stations.find(s => s.id === value);
       if (selectedStation) {
@@ -193,18 +193,17 @@ const BookingPage = () => {
       if (!user?.userId) throw new Error("User not authenticated");
 
       if (!selectedBooking?.station) throw new Error("Station not found");
-      
+
       const pricePerKWh = selectedBooking.station.pricePerKWh || 0.15;
       const amount = calculateCost();
 
       // First process payment
-      const paymentResponse = await fetch(`/backend/driver/payments/${user.userId}`, {
+      const paymentResponse = await fetch(`/backend/driver/payments/${user.userId}/reservations/${bookingId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...paymentData,
           amount,
-          bookingId
         }),
       });
 
@@ -326,6 +325,7 @@ const BookingPage = () => {
               <div className="mb-2">
                 <label className="block mb-1">Energy Used (kWh)</label>
                 <input
+                  id="payment-energy"
                   type="number"
                   name="energyUsed"
                   value={consumptionData.energyUsed}
@@ -358,6 +358,7 @@ const BookingPage = () => {
 
             <h3 className="font-medium mb-2">Payment Info</h3>
             <input
+              id="payment-card-number"
               type="text"
               name="cardNumber"
               placeholder="Card Number"
@@ -367,6 +368,7 @@ const BookingPage = () => {
               required
             />
             <input
+              id="payment-expiry-date"
               type="text"
               name="expiryDate"
               placeholder="MM/YY"
@@ -377,6 +379,7 @@ const BookingPage = () => {
               required
             />
             <input
+              id="payment-cvv"
               type="text"
               name="cvv"
               placeholder="CVV"
@@ -387,6 +390,7 @@ const BookingPage = () => {
             />
             <label className="flex items-center mb-4">
               <input
+                id="save-card"
                 type="checkbox"
                 name="saveCard"
                 checked={paymentData.saveCard}
@@ -411,6 +415,7 @@ const BookingPage = () => {
                 Cancel
               </button>
               <button
+                id="payment-submit"
                 onClick={() => handlePay(selectedBookingId)}
                 className="px-4 py-2 bg-green-600 text-white rounded"
                 disabled={loading || !consumptionData.energyUsed}
@@ -422,7 +427,7 @@ const BookingPage = () => {
         </div>
       )}
 
-      <table className="w-full table-auto border border-gray-300 mt-4">
+      <table id="table" className="w-full table-auto border border-gray-300 mt-4">
         <thead className="bg-gray-100">
           <tr>
             <th className="border px-4 py-2 text-center">Station</th>
@@ -445,12 +450,13 @@ const BookingPage = () => {
               <td className="border px-4 py-2 text-center">
                 {new Date(booking.endTime).toLocaleString("en-GB")}
               </td>
-              <td className="border px-4 py-2 text-center">
+              <td id="paid" className="border px-4 py-2 text-center">
                 {booking.paid ? "Paid" : "Pending"}
               </td>
               <td className="border px-4 py-2 text-center">
                 {!booking.paid && (
                   <button
+                    id="booking-pay-now"
                     className="text-blue-600 hover:underline"
                     onClick={() => {
                       setSelectedBooking(booking);
@@ -479,7 +485,7 @@ const BookingPage = () => {
         </tbody>
       </table>
       {loading && <div className="mt-4">Loading...</div>}
-    </div>
+    </div >
   );
 };
 

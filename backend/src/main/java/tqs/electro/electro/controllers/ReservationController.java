@@ -70,6 +70,7 @@ public class ReservationController {
         reservation.setEndTime(dto.getEndTime());
 
         Reservation saved = reservationService.addReservation(reservation);
+        System.out.println(saved);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 

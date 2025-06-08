@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(DriverController.class)
 public class PaymentControllerTest {
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -37,23 +38,55 @@ public class PaymentControllerTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    public void testPayEndpoint() throws Exception {
-        UUID userId = UUID.randomUUID();
+    public void testPayEndpointSuccess() throws Exception {
         PaymentCardDTO dto = new PaymentCardDTO("4242424242424242", "12/30", "123", 50.0, true);
         PaymentResponseDTO response = new PaymentResponseDTO(UUID.randomUUID(), "SUCCESS", 200);
+        UUID reservationId = UUID.randomUUID();
 
-        when(paymentService.pay(eq(userId), any())).thenReturn(response);
+        when(paymentService.pay(eq(userId), eq(reservationId), any())).thenReturn(response);
 
-        mockMvc.perform(post("/backend/driver/payments/" + userId)
+        mockMvc.perform(post("/backend/driver/payments/" + userId + "/reservations/" + reservationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.paymentStatus").value("SUCCESS"));
+                .andExpect(jsonPath("$.paymentStatus").value("SUCCESS"))
+                .andExpect(jsonPath("$.statusCode").value(200));
+    }
+
+    @Test
+    public void testPayEndpointUserNotFound() throws Exception {
+        PaymentCardDTO dto = new PaymentCardDTO("4242424242424242", "12/30", "123", 50.0, true);
+        PaymentResponseDTO response = new PaymentResponseDTO(null, "USER NOT FOUND", 404);
+        UUID reservationId = UUID.randomUUID();
+
+        when(paymentService.pay(eq(userId), eq(reservationId), any())).thenReturn(response);
+
+        mockMvc.perform(post("/backend/driver/payments/" + userId + "/reservations/" + reservationId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.paymentStatus").value("USER NOT FOUND"))
+                .andExpect(jsonPath("$.statusCode").value(404));
+    }
+
+    @Test
+    public void testPayEndpointCardInvalid() throws Exception {
+        PaymentCardDTO dto = new PaymentCardDTO("1234567890123456", "12/30", "123", 50.0, false);
+        PaymentResponseDTO response = new PaymentResponseDTO(null, "PAYMENT FAILDED", 400);
+        UUID reservationId = UUID.randomUUID();
+
+        when(paymentService.pay(eq(userId), eq(reservationId), any())).thenReturn(response);
+
+        mockMvc.perform(post("/backend/driver/payments/" + userId + "/reservations/" + reservationId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.paymentStatus").value("PAYMENT FAILDED"))
+                .andExpect(jsonPath("$.statusCode").value(400));
     }
 
     @Test
     public void testGetHistoryEndpoint() throws Exception {
-        UUID userId = UUID.randomUUID();
         when(paymentService.getPaymentHistory(userId)).thenReturn(List.of(new PaymentRecord()));
 
         mockMvc.perform(get("/backend/driver/payments/" + userId))
@@ -63,12 +96,12 @@ public class PaymentControllerTest {
 
     @Test
     public void testAutoPaySuccess() throws Exception {
-        // Arrange: Service returns a successful PaymentResponseDTO
         PaymentResponseDTO successDto = new PaymentResponseDTO(UUID.randomUUID(), "SUCCESS", 200);
-        when(paymentService.autoPay(eq(userId), eq(25.0))).thenReturn(successDto);
+        UUID reservationId = UUID.randomUUID();
 
-        // Act & Assert
-        mockMvc.perform(post("/backend/driver/payments/" + userId + "/auto")
+        when(paymentService.autoPay(eq(userId), eq(reservationId), eq(25.0))).thenReturn(successDto);
+
+        mockMvc.perform(post("/backend/driver/payments/" + userId + "/reservations/" + reservationId + "/auto")
                         .param("amount", "25.0"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paymentStatus").value("SUCCESS"))
@@ -77,12 +110,12 @@ public class PaymentControllerTest {
 
     @Test
     public void testAutoPayUserNotFound() throws Exception {
-        // Arrange: Service returns a 404 USER NOT FOUND
         PaymentResponseDTO notFoundDto = new PaymentResponseDTO(null, "USER NOT FOUND", 404);
-        when(paymentService.autoPay(eq(userId), eq(10.0))).thenReturn(notFoundDto);
+        UUID reservationId = UUID.randomUUID();
 
-        // Act & Assert
-        mockMvc.perform(post("/backend/driver/payments/" + userId + "/auto")
+        when(paymentService.autoPay(eq(userId), eq(reservationId), eq(10.0))).thenReturn(notFoundDto);
+
+        mockMvc.perform(post("/backend/driver/payments/" + userId + "/reservations/" + reservationId + "/auto")
                         .param("amount", "10.0"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.paymentStatus").value("USER NOT FOUND"))
@@ -91,12 +124,12 @@ public class PaymentControllerTest {
 
     @Test
     public void testAutoPayNoSavedCard() throws Exception {
-        // Arrange: Service returns a 400 NO SAVED CARD
         PaymentResponseDTO noCardDto = new PaymentResponseDTO(null, "NO SAVED CARD", 400);
-        when(paymentService.autoPay(eq(userId), eq(15.0))).thenReturn(noCardDto);
+        UUID reservationId = UUID.randomUUID();
 
-        // Act & Assert
-        mockMvc.perform(post("/backend/driver/payments/" + userId + "/auto")
+        when(paymentService.autoPay(eq(userId), eq(reservationId), eq(15.0))).thenReturn(noCardDto);
+
+        mockMvc.perform(post("/backend/driver/payments/" + userId + "/reservations/" + reservationId + "/auto")
                         .param("amount", "15.0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.paymentStatus").value("NO SAVED CARD"))
@@ -104,12 +137,24 @@ public class PaymentControllerTest {
     }
 
     @Test
+    public void testAutoPayCardInvalid() throws Exception {
+        PaymentResponseDTO invalidDto = new PaymentResponseDTO(null, "AUTO PAYMENT FAILED", 400);
+        UUID reservationId = UUID.randomUUID();
+
+        when(paymentService.autoPay(eq(userId), eq(reservationId), eq(30.0))).thenReturn(invalidDto);
+
+        mockMvc.perform(post("/backend/driver/payments/" + userId + "/reservations/" + reservationId + "/auto")
+                        .param("amount", "30.0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.paymentStatus").value("AUTO PAYMENT FAILED"))
+                .andExpect(jsonPath("$.statusCode").value(400));
+    }
+
+    @Test
     public void testHasSavedCardFound() throws Exception {
-        // Arrange: Service returns a masked number and expiry
         ExistingCardDTO cardDto = new ExistingCardDTO("************4242", "12/25");
         when(paymentService.hasSavedCard(eq(userId))).thenReturn(cardDto);
 
-        // Act & Assert
         mockMvc.perform(get("/backend/driver/" + userId + "/has-card"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardNumber").value("************4242"))
@@ -118,11 +163,9 @@ public class PaymentControllerTest {
 
     @Test
     public void testHasSavedCardNotFoundOrNoCard() throws Exception {
-        // Arrange: Service returns placeholders when user not found or no card
         ExistingCardDTO noCardDto = new ExistingCardDTO("-1", "-1");
         when(paymentService.hasSavedCard(eq(userId))).thenReturn(noCardDto);
 
-        // Act & Assert
         mockMvc.perform(get("/backend/driver/" + userId + "/has-card"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardNumber").value("-1"))

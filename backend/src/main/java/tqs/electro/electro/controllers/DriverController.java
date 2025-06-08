@@ -22,12 +22,13 @@ public class DriverController {
         this.paymentService = paymentService;
     }
 
-    @PostMapping("/payments/{personId}")
+    @PostMapping("/payments/{personId}/reservations/{reservationId}")
     public ResponseEntity<PaymentResponseDTO> pay(
             @PathVariable UUID personId,
+            @PathVariable UUID reservationId,
             @RequestBody PaymentCardDTO cardDTO
     ) {
-        PaymentResponseDTO response = paymentService.pay(personId, cardDTO);
+        PaymentResponseDTO response = paymentService.pay(personId, reservationId, cardDTO);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
@@ -37,12 +38,13 @@ public class DriverController {
         return ResponseEntity.ok(records);
     }
 
-    @PostMapping("payments/{id}/auto")
+    @PostMapping("payments/{id}/reservations/{reservationId}/auto")
     public ResponseEntity<PaymentResponseDTO> autoPay(
             @PathVariable("id") UUID id,
+            @PathVariable UUID reservationId,
             @RequestParam double amount) {
 
-        PaymentResponseDTO response = paymentService.autoPay(id, amount);
+        PaymentResponseDTO response = paymentService.autoPay(id, reservationId, amount);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 

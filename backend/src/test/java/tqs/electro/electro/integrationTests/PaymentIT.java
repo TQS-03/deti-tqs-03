@@ -13,19 +13,22 @@ import tqs.electro.electro.dtos.PaymentCardDTO;
 import tqs.electro.electro.entities.PaymentCard;
 import tqs.electro.electro.entities.PaymentRecord;
 import tqs.electro.electro.entities.Person;
+import tqs.electro.electro.entities.Reservation;
+import tqs.electro.electro.services.ReservationService;
+import tqs.electro.electro.repositories.PersonRepository;
 import tqs.electro.electro.repositories.PaymentCardRepository;
 import tqs.electro.electro.repositories.PaymentRecordRepository;
-import tqs.electro.electro.repositories.PersonRepository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,12 +49,18 @@ public class PaymentIT {
     @MockitoBean
     private PaymentRecordRepository paymentRecordRepository;
 
+    @MockitoBean
+    private ReservationService reservationService;
+
     private UUID personId;
+    private UUID reservationId;
     private Person mockPerson;
 
     @BeforeEach
     public void setup() {
-        personId = UUID.randomUUID();
+        personId      = UUID.randomUUID();
+        reservationId = UUID.randomUUID();
+
         mockPerson = new Person();
         mockPerson.setId(personId);
         mockPerson.setFirstName("Test");
@@ -59,60 +68,85 @@ public class PaymentIT {
         mockPerson.setEmail("test@example.com");
         mockPerson.setPassword_hash("secret");
         mockPerson.setIsWorker(false);
+
+        Reservation dummy = new Reservation();
+        when(reservationService.updateReservationPaidStatus(eq(reservationId), eq(true)))
+                .thenReturn(Optional.of(dummy));
     }
 
     @Test
     public void testSuccessfulPaymentIntegration() throws Exception {
-        PaymentCardDTO dto = new PaymentCardDTO("4242424242424242", "12/30", "123", 20.00, true);
+        PaymentCardDTO dto = new PaymentCardDTO(
+                "4242424242424242", "12/30", "123", 20.00, true
+        );
 
-        when(personRepository.findById(personId)).thenReturn(Optional.of(mockPerson));
-        when(paymentRecordRepository.save(any())).thenReturn(new PaymentRecord());
+        when(personRepository.findById(personId))
+                .thenReturn(Optional.of(mockPerson));
+        when(paymentRecordRepository.save(any(PaymentRecord.class)))
+                .thenReturn(new PaymentRecord());
 
-        mockMvc.perform(post("/backend/driver/payments/" + personId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+        mockMvc.perform(
+                        post("/backend/driver/payments/" + personId
+                                + "/reservations/" + reservationId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto))
+                )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.paymentStatus").value("SUCCESS"));
+                .andExpect(jsonPath("$.paymentStatus").value("SUCCESS"))
+                .andExpect(jsonPath("$.statusCode").value(200));
     }
 
     @Test
     public void testPaymentWithInvalidCard() throws Exception {
-        PaymentCardDTO dto = new PaymentCardDTO("123", "12/30", "000", 20.00, false);
+        PaymentCardDTO dto = new PaymentCardDTO(
+                "123", "12/30", "000", 20.00, false
+        );
 
-        when(personRepository.findById(personId)).thenReturn(Optional.of(mockPerson));
+        when(personRepository.findById(personId))
+                .thenReturn(Optional.of(mockPerson));
 
-        mockMvc.perform(post("/backend/driver/payments/" + personId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+        mockMvc.perform(
+                        post("/backend/driver/payments/" + personId
+                                + "/reservations/" + reservationId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto))
+                )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.paymentStatus").value("PAYMENT FAILDED"));
+                .andExpect(jsonPath("$.paymentStatus").value("PAYMENT FAILDED"))
+                .andExpect(jsonPath("$.statusCode").value(400));
     }
 
     @Test
     public void testGetPaymentHistory() throws Exception {
-        when(paymentRecordRepository.findByPersonId(personId)).thenReturn(List.of(new PaymentRecord()));
+        when(paymentRecordRepository.findByPersonId(personId))
+                .thenReturn(List.of(new PaymentRecord()));
 
-        mockMvc.perform(get("/backend/driver/payments/" + personId))
+        mockMvc.perform(
+                        get("/backend/driver/payments/" + personId)
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
     public void testAutoPaySuccess() throws Exception {
-        // Arrange: Person has a valid saved card
+        // Person has a valid saved card
         PaymentCard savedCard = new PaymentCard();
         savedCard.setCardNumber("4242424242424242");
         savedCard.setExpiryDate("12/30");
         savedCard.setCvv("123");
         mockPerson.setPaymentCard(savedCard);
 
-        when(personRepository.findById(personId)).thenReturn(Optional.of(mockPerson));
+        when(personRepository.findById(personId))
+                .thenReturn(Optional.of(mockPerson));
         when(paymentRecordRepository.save(any(PaymentRecord.class)))
                 .thenReturn(new PaymentRecord());
 
-        // Act & Assert
-        mockMvc.perform(post("/backend/driver/payments/" + personId + "/auto")
-                        .param("amount", "25.0"))
+        mockMvc.perform(
+                        post("/backend/driver/payments/" + personId
+                                + "/reservations/" + reservationId + "/auto")
+                                .param("amount", "25.0")
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paymentStatus").value("SUCCESS"))
                 .andExpect(jsonPath("$.statusCode").value(200));
@@ -120,10 +154,14 @@ public class PaymentIT {
 
     @Test
     public void testAutoPayUserNotFound() throws Exception {
-        when(personRepository.findById(personId)).thenReturn(Optional.empty());
+        when(personRepository.findById(personId))
+                .thenReturn(Optional.empty());
 
-        mockMvc.perform(post("/backend/driver/payments/" + personId + "/auto")
-                        .param("amount", "10.0"))
+        mockMvc.perform(
+                        post("/backend/driver/payments/" + personId
+                                + "/reservations/" + reservationId + "/auto")
+                                .param("amount", "10.0")
+                )
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.paymentStatus").value("USER NOT FOUND"))
                 .andExpect(jsonPath("$.statusCode").value(404));
@@ -132,10 +170,14 @@ public class PaymentIT {
     @Test
     public void testAutoPayNoSavedCard() throws Exception {
         // Person exists but has no saved card
-        when(personRepository.findById(personId)).thenReturn(Optional.of(mockPerson));
+        when(personRepository.findById(personId))
+                .thenReturn(Optional.of(mockPerson));
 
-        mockMvc.perform(post("/backend/driver/payments/" + personId + "/auto")
-                        .param("amount", "15.0"))
+        mockMvc.perform(
+                        post("/backend/driver/payments/" + personId
+                                + "/reservations/" + reservationId + "/auto")
+                                .param("amount", "15.0")
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.paymentStatus").value("NO SAVED CARD"))
                 .andExpect(jsonPath("$.statusCode").value(400));
@@ -150,10 +192,14 @@ public class PaymentIT {
         invalidCard.setCvv("123");
         mockPerson.setPaymentCard(invalidCard);
 
-        when(personRepository.findById(personId)).thenReturn(Optional.of(mockPerson));
+        when(personRepository.findById(personId))
+                .thenReturn(Optional.of(mockPerson));
 
-        mockMvc.perform(post("/backend/driver/payments/" + personId + "/auto")
-                        .param("amount", "30.0"))
+        mockMvc.perform(
+                        post("/backend/driver/payments/" + personId
+                                + "/reservations/" + reservationId + "/auto")
+                                .param("amount", "30.0")
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.paymentStatus").value("AUTO PAYMENT FAILED"))
                 .andExpect(jsonPath("$.statusCode").value(400));
@@ -168,9 +214,12 @@ public class PaymentIT {
         savedCard.setCvv("321");
         mockPerson.setPaymentCard(savedCard);
 
-        when(personRepository.findById(personId)).thenReturn(Optional.of(mockPerson));
+        when(personRepository.findById(personId))
+                .thenReturn(Optional.of(mockPerson));
 
-        mockMvc.perform(get("/backend/driver/" + personId + "/has-card"))
+        mockMvc.perform(
+                        get("/backend/driver/" + personId + "/has-card")
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardNumber").value("************4242"))
                 .andExpect(jsonPath("$.expiryDate").value("11/29"));
@@ -178,16 +227,23 @@ public class PaymentIT {
 
     @Test
     public void testHasSavedCardNotFoundOrNoCard() throws Exception {
-        when(personRepository.findById(personId)).thenReturn(Optional.empty());
+        when(personRepository.findById(personId))
+                .thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/backend/driver/" + personId + "/has-card"))
+        mockMvc.perform(
+                        get("/backend/driver/" + personId + "/has-card")
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardNumber").value("-1"))
                 .andExpect(jsonPath("$.expiryDate").value("-1"));
 
-        when(personRepository.findById(personId)).thenReturn(Optional.of(mockPerson));
+        // and no‐card case
+        when(personRepository.findById(personId))
+                .thenReturn(Optional.of(mockPerson));
 
-        mockMvc.perform(get("/backend/driver/" + personId + "/has-card"))
+        mockMvc.perform(
+                        get("/backend/driver/" + personId + "/has-card")
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardNumber").value("-1"))
                 .andExpect(jsonPath("$.expiryDate").value("-1"));

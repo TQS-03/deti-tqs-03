@@ -1,5 +1,9 @@
 #!/bin/bash
 
+docker buildx prune -f
+docker image prune -f
+docker container prune -f
+
 echo "Pulling latest code..."
 git pull origin main
 
@@ -8,5 +12,7 @@ docker-compose down
 docker-compose up --build -d
 
 echo "Starting Staging Docker Compose build..."
-docker-compose -f docker-compose_test.yml down
-docker-compose -f docker-compose_test.yml up --build -d
+docker-compose -f docker-compose_test.yml down -v
+docker-compose -f docker-compose_staging.yml up --build -d
+
+docker buildx prune -f
